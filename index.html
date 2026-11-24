@@ -585,12 +585,25 @@
   /* scroll progress bar top */
   body::before{content:"";position:fixed;top:0;left:0;height:3px;width:var(--sp,0%);z-index:200;
     background:linear-gradient(90deg,var(--red),var(--ember));box-shadow:0 0 10px var(--glow)}
+
+  /* ===== Click ripple wave ===== */
+  .click-wave{position:fixed;width:0;height:0;border-radius:50%;pointer-events:none;z-index:9000;
+    border:2px solid rgba(255,60,60,.8);transform:translate(-50%,-50%);opacity:0}
+  .click-wave.active{animation:wave .55s ease-out forwards}
+  @keyframes wave{0%{width:0;height:0;opacity:.9}100%{width:90px;height:90px;opacity:0}}
+  .click-flash{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:8500;
+    background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,60,60,.22),transparent 65%);
+    opacity:0}
+  .click-flash.active{animation:flash .35s ease-out forwards}
+  @keyframes flash{0%{opacity:1}100%{opacity:0}}
 </style>
 </head>
 <body>
 
 <div class="cursor-dot" id="cursorDot"></div>
 <div class="cursor-ring" id="cursorRing"></div>
+<div class="click-wave" id="clickWave"></div>
+<div class="click-flash" id="clickFlash"></div>
 
 <div class="bg-grain"></div>
 
@@ -879,6 +892,65 @@
     document.addEventListener('mouseup',function(){ if(cRing) cRing.classList.remove('pressed'); });
     document.addEventListener('mouseleave',function(){ ringOn=false; if(cRing){ cRing.style.opacity='0'; } });
   }catch(e){}
+  // ============ Click sound + effects ============
+  var audioCtx=null;
+  function ensureAudio(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(audioCtx&&audioCtx.state==='suspended'){ try{audioCtx.resume()}catch(e){} } }
+  function playClick(){
+    ensureAudio();
+    if(!audioCtx) return;
+    try{
+      var t=audioCtx.currentTime;
+      // crisp tick
+      var osc=audioCtx.createOscillator();
+      var g=audioCtx.createGain();
+      osc.type='triangle';
+      osc.frequency.setValueAtTime(1200,t);
+      osc.frequency.exponentialRampToValueAtTime(300,t+0.08);
+      g.gain.setValueAtTime(0.25,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.09);
+      osc.connect(g); g.connect(audioCtx.destination);
+      osc.start(t); osc.stop(t+0.1);
+    }catch(e){}
+  }
+  function playRelease(){
+    ensureAudio();
+    if(!audioCtx) return;
+    try{
+      var t=audioCtx.currentTime;
+      // soft thock
+      var osc=audioCtx.createOscillator();
+      var g=audioCtx.createGain();
+      osc.type='sine';
+      osc.frequency.setValueAtTime(260,t);
+      osc.frequency.exponentialRampToValueAtTime(180,t+0.06);
+      g.gain.setValueAtTime(0.16,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.08);
+      osc.connect(g); g.connect(audioCtx.destination);
+      osc.start(t); osc.stop(t+0.09);
+    }catch(e){}
+  }
+  var clickWave=document.getElementById('clickWave');
+  var clickFlash=document.getElementById('clickFlash');
+  document.addEventListener('mousedown',function(e){
+    if(e.button!==0) return;
+    ensureAudio();
+    playClick();
+    if(clickWave){
+      clickWave.classList.remove('active');
+      void clickWave.offsetWidth;
+      clickWave.style.left=e.clientX+'px';
+      clickWave.style.top=e.clientY+'px';
+      clickWave.classList.add('active');
+    }
+    if(clickFlash){
+      document.body.style.setProperty('--mx', e.clientX+'px');
+      document.body.style.setProperty('--my', e.clientY+'px');
+      clickFlash.classList.remove('active');
+      void clickFlash.offsetWidth;
+      clickFlash.classList.add('active');
+    }
+  });
+  document.addEventListener('mouseup',function(e){ if(e.button===0) playRelease(); });
   // ============ Supabase config ============
   var SUPABASE_URL='https://zljadqzgyfqyhojyuuii.supabase.co';
   var SUPABASE_KEY='sb_publishable_HrPdrb92ppWGN-Qveq7q3Q_Y3MZIS9l';
