@@ -343,15 +343,6 @@
   .sw-btn.active{background:#fff;color:#0b0b0c;border-color:#fff}
   .views-wrap.server .sw-btn.sb-server{background:#eaeaea;color:#000;border-color:#eaeaea}
   .views-wrap.server .sw-btn.sb-clan{background:transparent;color:#cfcfcf}
-  .nav-arrows{position:fixed;top:52%;right:16px;z-index:45;display:flex;flex-direction:column;gap:8px}
-  .nav-arrows button{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.18);
-    background:rgba(0,0,0,.45);color:#fff;font-size:1.2rem;cursor:pointer;backdrop-filter:blur(4px);transition:.2s}
-  .nav-arrows button:hover{background:var(--red);border-color:var(--red)}
-  .ar-l{position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:45}
-  .ar-r{position:fixed;top:50%;right:10px;transform:translateY(-50%);z-index:45}
-  .ar-l button,.ar-r button{width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.18);
-    background:rgba(0,0,0,.5);color:#fff;font-size:1.4rem;cursor:pointer;backdrop-filter:blur(4px);transition:.2s}
-  .ar-l button:hover,.ar-r button:hover{background:var(--red);border-color:var(--red)}
   /* server view is black&white */
   .view.server-view{background:var(--bg);color:var(--text);min-height:100vh;padding-top:60px}
   .view.server-view .sec-kicker{color:var(--red)}
@@ -480,9 +471,6 @@
   .btn:active,.sw-btn:active,.btn-submit:active{transform:translateY(1px) scale(.98)}
   /* focus visibility */
   a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--red);outline-offset:2px}
-  /* nav-arrow hover glow */
-  .ar-l button,.ar-r button,.nav-arrows button{transition:transform .25s ease,background .25s ease,box-shadow .25s ease}
-  .ar-l button:hover,.ar-r button:hover,.nav-arrows button:hover{transform:scale(1.12)}
 
   @media(max-width:680px){
     .menu{display:none;position:absolute;top:68px;left:0;right:0;flex-direction:column;
@@ -579,9 +567,6 @@
   /* inputs premium */
   input,textarea,select{transition:border-color .3s,box-shadow .3s,background .3s}
   input:focus,textarea:focus,select:focus{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(255,60,60,.14)!important}
-  /* nav arrows premium */
-  .ar-l button,.ar-r button{background:linear-gradient(135deg,rgba(121,18,18,.7),rgba(20,20,24,.6));
-    box-shadow:0 6px 20px -6px rgba(0,0,0,.6)}
   /* scroll progress bar top */
   body::before{content:"";position:fixed;top:0;left:0;height:3px;width:var(--sp,0%);z-index:200;
     background:linear-gradient(90deg,var(--red),var(--ember));box-shadow:0 0 10px var(--glow)}
@@ -861,10 +846,6 @@
   </div>
 </footer>
 
-<!-- view navigation arrows -->
-<div class="ar-l"><button id="arrowLeft" aria-label="Назад">◀</button></div>
-<div class="ar-r"><button id="arrowRight" aria-label="Вперёд">▶</button></div>
-
 <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
   // ============ Custom cursor ============
@@ -892,49 +873,11 @@
     document.addEventListener('mouseup',function(){ if(cRing) cRing.classList.remove('pressed'); });
     document.addEventListener('mouseleave',function(){ ringOn=false; if(cRing){ cRing.style.opacity='0'; } });
   }catch(e){}
-  // ============ Click sound + effects ============
-  var audioCtx=null;
-  function ensureAudio(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(audioCtx&&audioCtx.state==='suspended'){ try{audioCtx.resume()}catch(e){} } }
-  function playClick(){
-    ensureAudio();
-    if(!audioCtx) return;
-    try{
-      var t=audioCtx.currentTime;
-      // crisp tick
-      var osc=audioCtx.createOscillator();
-      var g=audioCtx.createGain();
-      osc.type='triangle';
-      osc.frequency.setValueAtTime(1200,t);
-      osc.frequency.exponentialRampToValueAtTime(300,t+0.08);
-      g.gain.setValueAtTime(0.25,t);
-      g.gain.exponentialRampToValueAtTime(0.001,t+0.09);
-      osc.connect(g); g.connect(audioCtx.destination);
-      osc.start(t); osc.stop(t+0.1);
-    }catch(e){}
-  }
-  function playRelease(){
-    ensureAudio();
-    if(!audioCtx) return;
-    try{
-      var t=audioCtx.currentTime;
-      // soft thock
-      var osc=audioCtx.createOscillator();
-      var g=audioCtx.createGain();
-      osc.type='sine';
-      osc.frequency.setValueAtTime(260,t);
-      osc.frequency.exponentialRampToValueAtTime(180,t+0.06);
-      g.gain.setValueAtTime(0.16,t);
-      g.gain.exponentialRampToValueAtTime(0.001,t+0.08);
-      osc.connect(g); g.connect(audioCtx.destination);
-      osc.start(t); osc.stop(t+0.09);
-    }catch(e){}
-  }
+  // ============ Click effects ============
   var clickWave=document.getElementById('clickWave');
   var clickFlash=document.getElementById('clickFlash');
   document.addEventListener('mousedown',function(e){
     if(e.button!==0) return;
-    ensureAudio();
-    playClick();
     if(clickWave){
       clickWave.classList.remove('active');
       void clickWave.offsetWidth;
@@ -950,7 +893,6 @@
       clickFlash.classList.add('active');
     }
   });
-  document.addEventListener('mouseup',function(e){ if(e.button===0) playRelease(); });
   // ============ Supabase config ============
   var SUPABASE_URL='https://zljadqzgyfqyhojyuuii.supabase.co';
   var SUPABASE_KEY='sb_publishable_HrPdrb92ppWGN-Qveq7q3Q_Y3MZIS9l';
@@ -1430,8 +1372,6 @@
   var serverView=document.getElementById('serverView');
   var swClan=document.getElementById('swClan');
   var swServer=document.getElementById('swServer');
-  var arrowLeft=document.getElementById('arrowLeft');
-  var arrowRight=document.getElementById('arrowRight');
   var currentView='clan';
 
   function setView(v, animate){
@@ -1452,13 +1392,8 @@
     else if(dir==='next' && currentView==='clan'){ setView('server'); }
   }
 
-  swClan.addEventListener('click',function(){ setView('clan'); });
+swClan.addEventListener('click',function(){ setView('clan'); });
   swServer.addEventListener('click',function(){ setView('server'); });
-  // клик по логотипу — переключение вида
-  var logoClick=document.getElementById('logoClickable');
-  if(logoClick) logoClick.addEventListener('click',function(){ toggleViews(currentView==='clan'?'next':'prev'); });
-  arrowLeft.addEventListener('click',function(){ toggleViews('prev'); });
-  arrowRight.addEventListener('click',function(){ toggleViews('next'); });
 
   // swipe support
   var touchX=null;
