@@ -359,6 +359,20 @@
   .view.server-view .s-card{background:#1a1a1a}
   .sw-badge{display:inline-flex;align-items:center;gap:8px;color:#8a8a8a;font-size:.85rem;letter-spacing:.06em}
 
+  /* complaint */
+  .complaint-sec{background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:30px;margin-top:34px}
+  .complaint-sec h3{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:4px}
+  .complaint-sub{color:#8a8a8a;font-size:.9rem;margin-bottom:18px}
+  .complaint-form{display:flex;flex-direction:column;gap:12px}
+  .admin-complaints h3{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:14px}
+  .admin-complaints .c-item{background:#161616;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+  .admin-complaints .c-item .c-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px}
+  .admin-complaints .c-item .c-who{font-weight:700;color:#fff;font-size:.92rem}
+  .admin-complaints .c-item .c-date{color:#8a8a8a;font-size:.78rem}
+  .admin-complaints .c-item .c-on{color:#cfcfcf;font-size:.8rem;margin-bottom:4px}
+  .admin-complaints .c-item .c-text{color:#e6e6e6;font-size:.92rem;white-space:pre-wrap;word-break:break-word}
+  .admin-complaints .c-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;margin-left:auto}
+
   @media(max-width:680px){
     .menu{display:none;position:absolute;top:68px;left:0;right:0;flex-direction:column;
       background:rgba(7,7,8,.96);border-bottom:1px solid var(--line);padding:18px 24px;gap:16px;
@@ -590,6 +604,31 @@
         <li><span class="r-num">05</span>Вопросы к админам — через Discord. Админы неиммунны к правилам.</li>
       </ul>
     </div>
+
+    <!-- Complaint form -->
+    <div class="complaint-sec reveal">
+      <h3>Написать жалобу</h3>
+      <p class="complaint-sub">Пожаловаться на нарушителя, баг или проблему. Уйдёт админам в Discord и на сайт.</p>
+      <div class="complaint-form">
+        <div class="field">
+          <input type="text" id="compName" placeholder="Твой ник" style="width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;padding:11px 13px">
+        </div>
+        <div class="field">
+          <input type="text" id="compTarget" placeholder="На кого жалоба (ник нарушителя)" style="width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;padding:11px 13px">
+        </div>
+        <div class="field">
+          <textarea id="compText" rows="4" placeholder="Опиши проблему..." style="width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;padding:11px 13px;resize:vertical;font-family:inherit"></textarea>
+        </div>
+        <button class="btn btn-solid" id="compSend">Отправить жалобу</button>
+        <div class="form-status" id="compStatus"></div>
+      </div>
+    </div>
+
+    <!-- Admin: complaints list -->
+    <div class="admin-complaints reveal" id="adminComplaints" style="display:none;margin-top:34px">
+      <h3>Жалобы (для админа)</h3>
+      <div id="complaintsList"><p style="color:var(--muted)">Жалоб нет.</p></div>
+    </div>
   </div>
 </section>
 </div><!-- /serverView -->
@@ -729,6 +768,7 @@
     if(isOwner){ ownerForm.classList.add('open'); }
     if(typeof updateMemberButtons==='function'){ updateMemberButtons(); }
     if(typeof updateServerNewsUI==='function'){ updateServerNewsUI(); }
+    if(typeof updateComplaintsUI==='function'){ updateComplaintsUI(); }
   }
   document.getElementById('adminTrigger').addEventListener('click',function(){
     if(isOwner){ ownerForm.classList.toggle('open'); return; }
@@ -1140,6 +1180,78 @@
   if(location.hash==='#server'){ setView('server'); }
   else { setView('clan'); }
 
+  // ============ Complaints ============
+  var WEBHOOK_URL='https://discord.com/api/webhooks/1568684153627476168/wkDuYCfiYeY0fVcf8cC0FItTcDI6sp2E8Dw2MSVyk0FcJZY0iRfrS_jS1QHsBiElPIeF';
+  var compStatus=document.getElementById('compStatus');
+  var adminComplaints=document.getElementById('adminComplaints');
+
+  function setCompStatus(msg,kind){ if(compStatus){ compStatus.textContent=msg; compStatus.className='form-status '+(kind||''); } }
+
+  async function loadComplaints(){
+    if(!supabase) return;
+    try{
+      var {data,error}=await supabase.from('complaints').select('*').order('created_at',{ascending:false});
+      if(error) throw error;
+      renderComplaints(data||[]);
+    }catch(e){ console.error('complaints', e); }
+  }
+  function renderComplaints(list){
+    var box=document.getElementById('complaintsList');
+    if(!box) return;
+    box.innerHTML='';
+    if(!list.length){ box.innerHTML='<p style="color:var(--muted)">Жалоб нет.</p>'; return; }
+    list.forEach(function(c){
+      var d=new Date(c.created_at);
+      var date=d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+      var el=document.createElement('div');
+      el.className='c-item';
+      el.innerHTML=
+        '<div class="c-head"><span class="c-who">'+esc(c.name||'?')+'</span><span class="c-date">'+date+'</span></div>'+
+        (c.target?'<div class="c-on">На: '+esc(c.target)+'</div>':'')+
+        '<div class="c-text">'+esc(c.text)+'</div>'+
+        '<button class="c-del" onclick="deleteComplaint(\''+c.id+'\')">✕</button>';
+      box.appendChild(el);
+    });
+  }
+  window.deleteComplaint=async function(id){
+    if(!isOwner||!supabase) return;
+    try{
+      var {error}=await supabase.from('complaints').delete().match({id:id});
+      if(error){ alert(error.message); return; }
+      loadComplaints();
+    }catch(e){ alert('Ошибка: '+e.message); }
+  };
+  document.getElementById('compSend').addEventListener('click',async function(){
+    var name=document.getElementById('compName').value.trim();
+    var target=document.getElementById('compTarget').value.trim();
+    var text=document.getElementById('compText').value.trim();
+    if(!name||!text){ setCompStatus('Укажи ник и описание проблемы','err'); return; }
+    setCompStatus('Отправляем...','');
+    // 1) в Discord
+    try{
+      await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({content:'**Жалоба**\nОт: '+name+'\nНа: '+(target||'—')+'\n\n'+text})});
+    }catch(e){}
+    // 2) в Supabase
+    try{
+      var {data,error}=await supabase.from('complaints').insert({name:name,target:target,text:text});
+      if(error) throw error;
+      setCompStatus('Жалоба отправлена','ok');
+      document.getElementById('compName').value='';
+      document.getElementById('compTarget').value='';
+      document.getElementById('compText').value='';
+      setTimeout(function(){ setCompStatus('',''); },2500);
+      if(isOwner) loadComplaints();
+    }catch(e){
+      setCompStatus('Не удалось сохранить, но в Discord ушла','err');
+    }
+  });
+
+  function updateComplaintsUI(){
+    if(adminComplaints) adminComplaints.style.display=isOwner?'block':'none';
+    if(isOwner) loadComplaints();
+  }
+
   // ============ Init ============
   updateMemberButtons();
   loadPosts();
@@ -1147,6 +1259,7 @@
   loadServerNews();
   restoreSession();
   updateServerNewsUI();
+  updateComplaintsUI();
 </script>
 
 </body>
