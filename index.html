@@ -148,11 +148,11 @@
   /* members + recruit tiles */
   .members{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px}
   #members .members{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:18px}
-  #members .member{display:flex;flex-direction:column;align-items:center;text-align:center;
-    padding:26px 18px;max-width:none;min-width:0;flex:none}
-  #members .member .avatar{margin:0 0 14px;width:76px;height:76px;cursor:pointer;transition:.3s;
-    box-shadow:0 0 24px -4px var(--glow), inset 0 0 0 2px rgba(255,255,255,.12);object-fit:cover}
-  #members .member .avatar:hover{transform:scale(1.08)}
+#members .member{display:flex;flex-direction:column;align-items:center;text-align:center;
+    padding:24px 18px;max-width:none;min-width:0;flex:none;cursor:pointer;transition:.3s}
+  #members .member:hover{transform:translateY(-4px);border-color:var(--line);box-shadow:0 18px 40px -18px var(--glow)}
+  #members .member .avatar{margin:0 0 16px;width:112px;height:112px;font-size:1.9rem;
+    box-shadow:0 0 28px -4px var(--glow), inset 0 0 0 4px rgba(255,255,255,.12);object-fit:cover}
   #members .member .mid{display:flex;flex-direction:column;align-items:center}
   #members .member .rank{display:none}
   #members .member .role{color:var(--red);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
@@ -161,7 +161,7 @@
     text-align:center;transition:.35s;position:relative;overflow:hidden}
   .member:hover{transform:translateY(-4px);border-color:var(--line);box-shadow:0 18px 40px -18px var(--glow)}
   .avatar{width:58px;height:58px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;
-    font-weight:900;color:#fff;font-size:1.3rem;position:relative;
+    font-weight:900;color:#fff;font-size:1.6rem;position:relative;
     background:linear-gradient(135deg,var(--red),var(--red-dark));
     box-shadow:0 0 24px -4px var(--glow), inset 0 0 0 2px rgba(255,255,255,.12);object-fit:cover}
   .member h4{font-size:1.2rem;font-weight:800;letter-spacing:.01em}
@@ -188,8 +188,8 @@
   .memberCardOverlay.open{display:flex}
   .m-modal{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:36px;width:100%;max-width:360px;
     text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.7)}
-  .m-big-ava{width:96px;height:96px;border-radius:50%;object-fit:cover;margin:0 auto 18px;display:block;
-    background:linear-gradient(135deg,var(--red),var(--red-dark));box-shadow:0 0 30px -6px var(--glow)}
+  .m-big-ava{width:140px;height:140px;border-radius:50%;object-fit:cover;margin:0 auto 20px;display:block;
+    background:linear-gradient(135deg,var(--red),var(--red-dark));box-shadow:0 0 34px -6px var(--glow)}
   .m-big-ava-text{display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1.8rem}
   .m-modal h3{font-size:1.5rem;font-weight:800}
   .m-role{color:var(--red);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;margin-top:6px;font-weight:700}
@@ -793,9 +793,8 @@
       el.innerHTML=
         ava+
         '<div class="mid"><h4>'+esc(m.name)+'</h4><div class="role">'+esc(m.role)+'</div></div>';
-      // клик по аватару открывает карточку с полной инфой
-      var avaEl=el.querySelector('.avatar');
-      if(avaEl) avaEl.addEventListener('click',function(){ openMemberCard(m); });
+      // клик по всей карточке открывает инфу игрока
+      el.addEventListener('click',function(){ openMemberCard(m); });
       memberListEl.appendChild(el);
       if(io) io.observe(el);
     });
@@ -892,7 +891,7 @@
     editMembersModal.classList.add('open');
   });
   document.getElementById('editMembersAdd').addEventListener('click',function(){
-    editDraft.push({name:'YxS_New',role:'Игрок',hours:'1 000+',since:'2026',desc:'Член клана',status:'Онлайн',_ava:''});
+    editDraft.push({name:'',role:'Игрок',hours:'',since:'',descr:'',status:'Онлайн',_ava:''});
     renderEditor();
   });
   document.getElementById('editMembersSave').addEventListener('click',async function(){
