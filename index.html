@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[YxS] — Клан Rust</title>
+<meta name="description" content="Клан YxS в Rust. Выживание, рейды, PvP. Присоединяйся.">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#ff3b3b;
+    --red-bright:#ff5a5a;
+    --red-dark:#b31212;
+    --ember:#ff7a1a;
+    --glow:rgba(255,60,60,.45);
+    --bg:#070708;
+    --bg2:#0e0e11;
+    --panel:#121216;
+    --line:rgba(255,60,60,.14);
+    --text:#f2efea;
+    --muted:#a69f97;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.65;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--red);text-decoration:none}
+  .container{max-width:1140px;margin:0 auto;padding:0 24px}
+
+  /* ---------- Reveal animation ---------- */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- Ambient background ---------- */
+  .bg-grain{
+    position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(179,18,18,.16), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 30%, rgba(255,122,26,.06), transparent 55%),
+      radial-gradient(ellipse 50% 40% at 5% 70%, rgba(255,60,60,.07), transparent 55%),
+      var(--bg);
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    background:rgba(7,7,8,.6);
+    backdrop-filter:blur(14px) saturate(140%);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid rgba(255,60,60,.08);
+    transition:.3s;
+  }
+  header.scrolled{background:rgba(7,7,8,.85);box-shadow:0 10px 40px -10px rgba(0,0,0,.6)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .logo{font-weight:800;font-size:1.35rem;letter-spacing:.18em;display:flex;align-items:center;gap:10px}
+  .logo .mark{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--red),var(--ember));
+    box-shadow:0 0 22px var(--glow), inset 0 1px 0 rgba(255,255,255,.25);
+    color:#0b0b0c;font-size:1rem}
+  .logo .yxs{color:var(--text);background:linear-gradient(90deg,var(--red-bright),var(--ember));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .menu{display:flex;gap:32px;font-size:.95rem}
+  .menu a{color:var(--muted);position:relative;padding:6px 2px;transition:.25s;letter-spacing:.02em}
+  .menu a::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--red);
+    transition:.25s;border-radius:2px}
+  .menu a:hover{color:var(--text)}
+  .menu a:hover::after{width:100%}
+  .burger{display:none;background:none;border:none;color:var(--text);font-size:1.7rem;cursor:pointer}
+  .menu-cta{background:var(--red);border:none;color:#0b0b0c;padding:9px 18px;font-weight:700;border-radius:8px;
+    letter-spacing:.06em;font-size:.85rem;text-transform:uppercase;cursor:pointer;transition:.25s;
+    box-shadow:0 0 18px var(--glow)}
+  .menu-cta:hover{background:var(--red-dark);color:#fff;transform:translateY(-1px)}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;
+    padding:140px 0 90px;
+  }
+  .hero .bg-ring{position:absolute;border-radius:50%;pointer-events:none;filter:blur(2px)}
+  .ring1{width:520px;height:520px;right:-120px;top:-80px;border:1px solid rgba(255,60,60,.15);
+    box-shadow:inset 0 0 80px rgba(255,60,60,.08)}
+  .ring2{width:340px;height:340px;right:40px;top:60px;border:1px solid rgba(255,122,26,.18);
+    box-shadow:inset 0 0 60px rgba(255,90,90,.10)}
+  .hero .fade-bottom{position:absolute;left:0;right:0;bottom:0;height:180px;
+    background:linear-gradient(transparent,var(--bg))}
+  .tag{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);color:var(--red-bright);
+    padding:7px 16px;border-radius:999px;font-size:.78rem;letter-spacing:.28em;margin-bottom:26px;
+    text-transform:uppercase;background:rgba(255,60,60,.05)}
+  .tag .dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red);
+    animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .hero h1{font-size:clamp(2.9rem,8.5vw,6.2rem);font-weight:900;line-height:.98;
+    text-transform:uppercase;letter-spacing:.01em}
+  .hero h1 .line{display:block}
+  .hero h1 em{font-style:normal;
+    background:linear-gradient(90deg,var(--red-bright),var(--ember) 55%,var(--red-bright));
+    background-size:200% auto;
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    animation:shine 5s linear infinite}
+  @keyframes shine{to{background-position:200% center}}
+  .hero p.sub{max-width:580px;margin:26px 0 40px;color:var(--muted);font-size:1.16rem}
+  .hero p.sub b{color:var(--text)}
+  .btn-row{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 30px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;font-size:.9rem;border-radius:10px;border:1px solid transparent;
+    transition:.25s;cursor:pointer;position:relative}
+  .btn-solid{background:linear-gradient(135deg,var(--red),var(--red-dark));color:#fff;
+    box-shadow:0 10px 30px -8px var(--glow)}
+  .btn-solid:hover{transform:translateY(-2px);box-shadow:0 16px 40px -8px var(--glow)}
+  .btn-ghost{color:var(--text);border:1px solid var(--line);background:rgba(255,255,255,.03)}
+  .btn-ghost:hover{border-color:var(--red);color:var(--red-bright);background:rgba(255,60,60,.06)}
+  .btn .ico{font-size:1.1rem}
+
+  .hero-scroll{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);
+    color:var(--muted);font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .hero-scroll .wheel{width:24px;height:38px;border:1px solid var(--line);border-radius:12px;position:relative}
+  .hero-scroll .wheel::after{content:"";position:absolute;left:50%;top:8px;width:4px;height:8px;border-radius:2px;
+    background:var(--red);transform:translateX(-50%);animation:scrollDot 1.8s infinite}
+  @keyframes scrollDot{0%{opacity:0;top:6px}40%{opacity:1}80%{opacity:0;top:20px}}
+
+  /* ---------- Sections ---------- */
+  section{padding:110px 0;position:relative}
+  .sec-head{margin-bottom:56px;max-width:760px}
+  .sec-kicker{color:var(--red);font-size:.8rem;letter-spacing:.32em;text-transform:uppercase;
+    display:flex;align-items:center;gap:14px}
+  .sec-kicker::before{content:"";width:34px;height:1px;background:var(--red)}
+  .sec-head h2{font-size:clamp(1.9rem,4.2vw,2.9rem);font-weight:900;margin-top:16px;text-transform:uppercase;letter-spacing:.01em}
+  .sec-head p{color:var(--muted);margin-top:14px;font-size:1.05rem}
+
+  /* cards (about) */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px}
+  .card{background:linear-gradient(180deg,var(--panel),var(--bg2));
+    border:1px solid rgba(255,255,255,.05);border-radius:16px;padding:28px;transition:.4s;
+    position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--red),var(--ember));opacity:.7}
+  .card:hover{transform:translateY(-6px);border-color:var(--line);
+    box-shadow:0 20px 50px -20px rgba(0,0,0,.7)}
+  .card .num{font-size:.8rem;font-weight:800;color:var(--ember);letter-spacing:.2em;text-transform:uppercase}
+  .card h3{font-size:1.3rem;margin:14px 0 10px;font-weight:700}
+  .card p{color:var(--muted);font-size:.98rem}
+
+  /* members + recruit tiles */
+  .members{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px}
+  #members .members{display:flex;flex-direction:column;gap:16px}
+  #members .member{display:grid;grid-template-columns:auto 52px 1fr;align-items:center;gap:20px;
+    text-align:left;padding:18px 22px;max-width:none;min-width:0;flex:none}
+  #members .member .avatar{margin:0;width:52px;height:52px}
+  #members .member .mid{display:flex;flex-direction:column}
+  #members .member .rank{font-size:1.5rem;font-weight:900;color:var(--ember);text-align:center;line-height:1;
+    text-shadow:0 0 14px rgba(255,122,26,.4);min-width:30px}
+  #members .member .info{grid-column:1/-1;text-align:left}
+  .member{background:var(--panel);border:1px solid rgba(255,255,255,.05);padding:28px 24px;border-radius:16px;
+    text-align:center;transition:.35s;position:relative;overflow:hidden}
+  .member::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--red),var(--ember));opacity:0;transition:.35s}
+  .member:hover{transform:translateY(-5px);border-color:var(--line);box-shadow:0 18px 44px -18px var(--glow)}
+  .member:hover::before{opacity:1}
+  .avatar{width:58px;height:58px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;
+    font-weight:900;color:#fff;font-size:1.3rem;position:relative;
+    background:linear-gradient(135deg,var(--red),var(--red-dark));
+    box-shadow:0 0 24px -4px var(--glow), inset 0 0 0 2px rgba(255,255,255,.12);object-fit:cover}
+  .member h4{font-size:1.2rem;font-weight:800;letter-spacing:.01em}
+  .member .role{color:var(--red);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;margin-top:5px;
+    font-weight:700}
+  .member .desc{color:var(--muted);font-size:.88rem;margin-top:10px;text-align:center}
+
+  /* members editor (admin) */
+  .m-ed-row{display:flex;gap:18px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);flex-wrap:wrap}
+  .m-ed-row .ava-preview{width:64px;height:64px;border-radius:50%;object-fit:cover;overflow:hidden;flex:none;
+    background:linear-gradient(135deg,var(--red),var(--red-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.4rem}
+  .m-ed-fields{flex:1;min-width:250px;display:flex;flex-direction:column;gap:10px}
+  .m-ed-fields input[type=text]{width:100%;background:var(--bg2);border:1px solid rgba(255,255,255,.08);
+    border-radius:8px;color:var(--text);padding:9px 12px;font-size:.92rem}
+  .m-ed-fields input:focus{outline:none;border-color:var(--red)}
+  .m-ed-upload{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .m-ed-upload label{cursor:pointer;color:var(--red);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase}
+  .m-ed-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.3rem;line-height:1;padding:4px}
+  .m-ed-del:hover{color:var(--red)}
+  /* hidden detail opens on hover */
+  .member .info{max-height:0;opacity:0;overflow:hidden;transition:max-height .45s ease,opacity .35s,margin .35s;
+    margin-top:0;text-align:left}
+  .member:hover .info,.member:focus-within .info{max-height:220px;opacity:1;margin-top:18px}
+  .member .info ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+  .member .info li{display:flex;justify-content:space-between;gap:12px;font-size:.85rem;color:var(--muted);
+    padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+  .member .info li:last-child{border-bottom:none}
+  .member .info li b{color:var(--text);font-weight:600;white-space:nowrap}
+
+  /* CTA band */
+  .cta-band{position:relative;padding:110px 0;text-align:center;overflow:hidden}
+  .cta-band::before{content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(ellipse 60% 80% at 50% 50%, rgba(179,18,18,.16), transparent 70%),
+      linear-gradient(rgba(255,60,60,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,60,60,.05) 1px, transparent 1px);
+    background-size:auto,46px 46px,46px 46px;pointer-events:none}
+  .cta-band .container{position:relative;z-index:2}
+  .cta-band .kicker{color:var(--ember);font-size:.8rem;letter-spacing:.32em;text-transform:uppercase;margin-bottom:14px}
+  .cta-band h2{font-size:clamp(2rem,5vw,3.4rem);font-weight:900;text-transform:uppercase}
+  .cta-band p{max-width:560px;margin:18px auto 38px;color:var(--muted);font-size:1.08rem}
+  .cta-band .btn-solid{font-size:1rem;padding:17px 38px}
+
+  /* Footer */
+  /* ---------- Progress / Wipe log ---------- */
+  .progress-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+  .timeline{display:flex;flex-direction:column;gap:26px;margin-top:42px}
+  .post{background:var(--panel);border:1px solid rgba(255,255,255,.05);border-radius:18px;padding:26px 26px 22px;
+    position:relative;overflow:hidden;transition:.3s}
+  .post:hover{border-color:var(--line)}
+  .post::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:linear-gradient(180deg,var(--red),var(--ember));opacity:.5}
+  .post-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+  .post day{display:none}
+  .post-date{color:var(--muted);font-size:.82rem;letter-spacing:.05em}
+  .post-time{color:var(--red);font-size:.8rem;font-weight:600;margin-left:auto}
+  .post-author{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text);font-weight:600}
+  .post-author .badge{background:linear-gradient(135deg,var(--red),var(--ember));color:#0b0b0c;
+    font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:999px;letter-spacing:.06em}
+  .post-text{color:var(--text);font-size:1.02rem;white-space:pre-wrap;word-break:break-word}
+  .post-imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:16px}
+  .post-imgs img{width:100%;height:170px;object-fit:cover;border-radius:12px;cursor:pointer;
+    border:1px solid rgba(255,255,255,.06);transition:.3s}
+  .post-imgs img:hover{transform:scale(1.02);box-shadow:0 10px 30px -10px rgba(0,0,0,.7)}
+  .del-post{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);
+    cursor:pointer;font-size:1.1rem;opacity:0;transition:.25s;line-height:1}
+  .post:hover .del-post{opacity:1}
+  .del-post:hover{color:var(--red)}
+
+  /* lightbox */
+  .lightbox{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.92);display:none;
+    align-items:center;justify-content:center;padding:30px;cursor:zoom-out}
+  .lightbox img{max-width:92vw;max-height:88vh;border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.8)}
+
+  /* owner form */
+  .owner-form{margin-top:34px;background:linear-gradient(180deg,var(--panel),var(--bg2));
+    border:1px solid var(--line);border-radius:18px;padding:28px;display:none;position:relative}
+  .owner-form.open{display:block;animation:fadeUp .4s}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .owner-form h3{font-size:1.25rem;margin-bottom:16px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:7px;letter-spacing:.04em;text-transform:uppercase}
+  .field textarea,.field input[type=text]{
+    width:100%;background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:10px;
+    color:var(--text);padding:12px 14px;font-family:inherit;font-size:.98rem;resize:vertical;transition:.2s}
+  .field textarea:focus,.field input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(255,60,60,.12)}
+  .imgs-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  .thumb{width:104px;height:104px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.08);overflow:hidden;position:relative}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:none;
+    background:var(--red);color:#fff;cursor:pointer;font-size:.7rem;line-height:1}
+  .add-img-btn{width:104px;height:104px;border-radius:10px;border:1px dashed var(--line);color:var(--muted);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;background:none;
+    font-size:.75rem;transition:.25s}
+  .add-img-btn:hover{border-color:var(--red);color:var(--red)}
+  .form-actions{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+  .form-actions button{
+    border-radius:10px;padding:13px 26px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    font-size:.85rem;cursor:pointer;border:none;transition:.25s}
+  .btn-submit{background:linear-gradient(135deg,var(--red),var(--red-dark));color:#fff;
+    box-shadow:0 8px 24px -8px var(--glow)}
+  .btn-submit:hover{transform:translateY(-1px)}
+  .btn-cancel{background:var(--bg2);color:var(--muted);border:1px solid var(--line)!important}
+  .btn-cancel:hover{color:var(--text)}
+  .form-status{margin-top:14px;font-size:.85rem;min-height:1em}
+  .form-status.ok{color:#5fdb7a}
+  .form-status.err{color:var(--red)}
+
+  /* owner login modal */
+  .modal{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.8);display:none;
+    align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+  .modal.open{display:flex}
+  .modal-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:32px;width:100%;max-width:360px;
+    box-shadow:0 30px 80px rgba(0,0,0,.7)}
+  .modal-card h3{margin-bottom:6px}
+  .modal-card p{color:var(--muted);font-size:.85rem;margin-bottom:18px}
+  .modal-card input{width:100%;background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:10px;
+    color:var(--text);padding:12px 14px;font-size:.98rem;margin-bottom:14px}
+  .modal-card input:focus{outline:none;border-color:var(--red)}
+  .modal-err{color:var(--red);font-size:.82rem;min-height:1.2em;margin-bottom:10px}
+  .foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+  .foot .logo{color:var(--text)}
+
+  @media(max-width:680px){
+    .menu{display:none;position:absolute;top:68px;left:0;right:0;flex-direction:column;
+      background:rgba(7,7,8,.96);border-bottom:1px solid var(--line);padding:18px 24px;gap:16px;
+      backdrop-filter:blur(12px)}
+    .menu.open{display:flex}
+    .menu-cta{align-self:flex-start}
+    .burger{display:block}
+    .hero-scroll{display:none}
+    .hero{padding:130px 0 60px}
+    .ring1{width:300px;height:300px;right:-80px;top:-40px}
+    .ring2{width:200px;height:200px;right:0;top:20px}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grain"></div>
+
+<header id="header">
+  <div class="container nav">
+    <div class="logo">
+      <span class="mark">Y</span>
+      <span><span class="yxs">YxS</span></span>
+    </div>
+    <nav class="menu" id="menu">
+      <a href="#about">О клане</a>
+      <a href="#progress">Прогресс</a>
+      <a href="#recruit">Рекрут</a>
+      <a href="#members">Состав</a>
+      <button class="menu-cta" onclick="location.href='https://discord.gg/yxs'">Вступить</button>
+    </nav>
+    <button class="burger" id="burger" aria-label="Меню">☰</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="bg-ring ring1"></div>
+  <div class="bg-ring ring2"></div>
+  <div class="container">
+    <div class="tag"><span class="dot"></span>Clan · Rust</div>
+    <h1>
+      <span class="line">Войди.</span>
+      <span class="line"><em>Добей.</em></span>
+      <span class="line">Забери.</span>
+    </h1>
+    <p class="sub">Клан <b>[YxS]</b> — отлаженная машина выживания в Rust. Крепкая база, тяжёлые рейды, жёсткий PvP и свои люди, на которых можно положиться в любой вайп.</p>
+    <div class="btn-row">
+      <a class="btn btn-solid" href="https://discord.gg/yxs"><span class="ico">→</span> Discord — вступить</a>
+      <a class="btn btn-ghost" href="#about">Узнать больше</a>
+    </div>
+  </div>
+  <div class="hero-scroll"><span>Листай</span><span class="wheel"></span></div>
+  <div class="fade-bottom"></div>
+</section>
+
+<section id="about">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-kicker">О клане</div>
+      <h2>Почему YxS</h2>
+      <p>Мы не «толпа на один вайп». YxS — это дисциплина, чёткие роли и общая цель. У каждого место в строю, каждый гриндит и каждый держит оборону.</p>
+    </div>
+    <div class="cards">
+      <div class="card reveal"><div class="num">01</div><h3>База под ключ</h3>
+        <p>Тяжёлая последовательная база с мульти-ТС, турелями и внутренней логикой. Строим с нуля и держим до конца вайпа.</p></div>
+      <div class="card reveal"><div class="num">02</div><h3>Рейды без хаоса</h3>
+        <p>Разведка, план, координация в дискорде. Каждый рейд продуман, никаких розовых понтов на рандомных стенах.</p></div>
+      <div class="card reveal"><div class="num">03</div><h3>Тим-плей и PvP</h3>
+        <p>Ежедневные тренировки, совместные засидки и контроль карты. Фраги без нытья и самоуправства.</p></div>
+      <div class="card reveal"><div class="num">04</div><h3>Честность</h3>
+        <p>Никакого грефа внутри, никакого воровства из общих ящиков. Нарушил — вылетел. На простоте держится всё.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="recruit" style="background:var(--bg2);border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-kicker">Рекрут</div>
+      <h2>Кого мы берём</h2>
+      <p>Хочешь к нам — вот два жёстких критерия, остальное решает собеседование в дискорде.</p>
+    </div>
+    <div class="members">
+      <div class="member reveal"><div class="avatar">16+</div><h4>Возраст</h4>
+        <div class="role">Требование</div><p class="desc">От 16 лет. Отвечаем за свои слова и время.</p></div>
+      <div class="member reveal"><div class="avatar">2000+</div><h4>Часы в Rust</h4>
+        <div class="role">Обязательно</div><p class="desc">2000+ часов. База игры и PvP-механика на уровне.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-band" id="join">
+  <div class="container reveal">
+    <div class="kicker">Вступай</div>
+    <h2>Готов встать в строй?</h2>
+    <p>Заходи на наш сервер в Discord, напиши в канал рекрута и отметь возраст и часы. Мы ответим в течение дня.</p>
+    <div class="btn-row" style="justify-content:center">
+      <a class="btn btn-solid" href="https://discord.gg/yxs"> Discord — вступить</a>
+    </div>
+  </div>
+</div>
+
+<section id="progress">
+  <div class="container">
+    <div class="progress-head">
+      <div class="sec-head reveal" style="margin-bottom:0">
+        <div class="sec-kicker">Хроника</div>
+        <h2>Прогресс вайпа</h2>
+        <p>Свежие репорты с сервера: что построили, что срейдили, что дальше.</p>
+      </div>
+      <button class="btn btn-ghost owner-btn reveal" id="ownerBtn" style="visibility:hidden;position:absolute">Владелец · добавить</button>
+    </div>
+    <div class="owner-form reveal" id="ownerForm">
+      <h3>Новая запись</h3>
+      <div class="field">
+        <label for="postText">Текст</label>
+        <textarea id="postText" rows="4" placeholder="Что произошло на вайпе..."></textarea>
+      </div>
+      <div class="field">
+        <label>Скриншоты</label>
+        <div class="imgs-row" id="imgsRow"></div>
+        <label class="add-img-btn" for="imgInput">+<br>Добавить<br>фото</label>
+        <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
+      </div>
+      <div class="form-actions">
+        <button class="btn-submit" id="postSubmit">Опубликовать</button>
+        <button class="btn-cancel" id="postCancel">Отмена</button>
+      </div>
+      <div class="form-status" id="formStatus"></div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+    <p class="reveal" id="emptyState" style="color:var(--muted);margin-top:40px">Пока нет записей. Владелец, добавь первый репорт о вайпе.</p>
+  </div>
+</section>
+
+<div class="lightbox" id="lightbox"><img id="lightboxImg" alt=""></div>
+
+<div class="modal" id="passModal">
+  <div class="modal-card">
+    <h3>Вход владельца</h3>
+    <p id="authHint">Войдите в аккаунт владельца, чтобы управлять сайтом.</p>
+    <input type="email" id="authEmail" placeholder="Email" autocomplete="email">
+    <input type="password" id="authPass" placeholder="Пароль" autocomplete="current-password">
+    <div class="modal-err" id="modalErr"></div>
+    <button class="btn btn-solid" style="width:100%;justify-content:center" id="passOk">Войти</button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px;display:none" id="authLogout">Выйти из аккаунта</button>
+  </div>
+</div>
+
+<section id="members">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-kicker">Состав</div>
+      <h2>Состав</h2>
+      <p>Командование клана. Наведи на карточку, чтобы увидеть полную инфу.</p>
+    </div>
+    <div class="members" id="memberList"></div>
+    <div style="text-align:center;margin-top:26px">
+      <button class="btn btn-ghost" id="membersEditBtn" style="display:none">Управлять составом</button>
+    </div>
+  </div>
+</section>
+
+<!-- edit members modal -->
+<div class="modal" id="editMembersModal">
+  <div class="modal-card" style="max-width:720px;max-height:88vh;overflow-y:auto">
+    <h3 style="margin-bottom:16px">Управление составом</h3>
+    <div id="membersEditor"></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px">
+      <button class="btn btn-solid" id="editMembersSave" style="padding:11px 22px;font-size:.85rem">Сохранить</button>
+      <button class="btn btn-ghost" id="editMembersAdd">+ Добавить игрока</button>
+      <button class="btn btn-ghost" id="editMembersClose">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container foot">
+    <div class="logo"><span class="mark" style="width:28px;height:28px;font-size:.8rem">Y</span><span style="color:var(--text)">YxS CLAN · Rust</span></div>
+    <div>Войди. Добей. Забери.</div>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.1 · админ</span>
+  </div>
+</footer>
+
+<script>
+  // ============ Supabase config ============
+  var SUPABASE_URL='https://zljadqzgyfqyhojyuuii.supabase.co';
+  var SUPABASE_KEY='sb_publishable_HrPdrb92ppWGN-Qveq7q3Q_Y3MZIS9l';
+  var OWNER_EMAIL='safronov-2007@internet.ru';
+  var ADMIN_PASS='Loxi1029@22/';
+  var supabase=null;
+  var isOwner=false;
+  var EXPIRES=7;
+
+  function esc(s){
+    return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  // ============ Burger menu ============
+  var burger=document.getElementById('burger');
+  var menu=document.getElementById('menu');
+  burger.addEventListener('click',function(){ menu.classList.toggle('open'); });
+  menu.addEventListener('click',function(e){ if(e.target.tagName==='A'||e.target.tagName==='BUTTON'){menu.classList.remove('open');} });
+
+  // header shadow on scroll
+  var header=document.getElementById('header');
+  window.addEventListener('scroll',function(){
+    header.classList.toggle('scrolled', window.scrollY>40);
+  });
+
+  // reveal on scroll
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  },{threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+  // ============ Supabase init ============
+  try{
+    supabase=window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }catch(e){
+    document.getElementById('modalErr') && (document.getElementById('modalErr').textContent='Ошибка подключения к базе: '+e.message);
+  }
+
+  // ============ Progress / wipe log (server) ============
+  var timeline=document.getElementById('timeline');
+  var emptyState=document.getElementById('emptyState');
+
+  function render(){
+    timeline.innerHTML='';
+    if(!window.postsCache || !window.postsCache.length){ emptyState.style.display='block'; return; }
+    emptyState.style.display='none';
+    window.postsCache.slice().reverse().forEach(function(p){
+      var d=new Date(p.created_at);
+      var date=d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short',year:'numeric'});
+      var time=d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+      var el=document.createElement('article');
+      el.className='post reveal in';
+      var imgs='';
+      (p.imgs||[]).forEach(function(src){
+        // inlined data URLs are put directly; for bucket we keep the URL. Supabase passes public URLs.
+        imgs+='<img src="'+src+'" alt="скрин" onclick="openLightbox(this.src)">';
+      });
+      el.innerHTML=
+        '<div class="post-top">'+
+          '<span class="post-author">YxS_Owner<span class="badge">ОУНЕР</span></span>'+
+          '<span class="post-date">'+date+'</span>'+
+          '<span class="post-time">'+time+'</span>'+
+        '</div>'+
+        (p.text?'<p class="post-text">'+esc(p.text)+'</p>':'')+
+        (imgs?'<div class="post-imgs">'+imgs+'</div>':'')+
+        (isOwner?'<button class="del-post" title="Удалить" onclick="deletePost(\''+p.id+'\')">✕</button>':'');
+      timeline.appendChild(el);
+      io.observe(el);
+    });
+  }
+
+  async function loadPosts(){
+    if(!supabase) return;
+    try{
+      var {data,error}=await supabase.from('posts').select('*').order('created_at',{ascending:true});
+      if(error) throw error;
+      window.postsCache=data||[];
+      render();
+    }catch(e){
+      console.error('load posts', e);
+    }
+  }
+
+  window.deletePost=async function(id){
+    if(!isOwner || !supabase) return;
+    try{
+      var {error}=await supabase.from('posts').delete().match({id:id});
+      if(error){ alert(error.message); return; }
+      window.postsCache=(window.postsCache||[]).filter(function(p){ return p.id!==id; });
+      render();
+    }catch(e){ alert('Ошибка удаления: '+e.message); }
+  };
+
+  // lightbox
+  window.openLightbox=function(src){
+    document.getElementById('lightboxImg').src=src;
+    document.getElementById('lightbox').style.display='flex';
+  };
+  document.getElementById('lightbox').addEventListener('click',function(){ this.style.display='none'; });
+
+  // ============ Auth (Supabase) ============
+  var ownerForm=document.getElementById('ownerForm');
+  var passModal=document.getElementById('passModal');
+  var authLogoutBtn=document.getElementById('authLogout');
+
+  function showPassModal(){
+    if(isOwner){
+      document.getElementById('authLogout').style.display='inline-flex';
+    }
+    passModal.classList.add('open');
+  }
+  function updateOwnerUI(){
+    if(isOwner){ ownerForm.classList.add('open'); }
+    if(typeof updateMemberButtons==='function'){ updateMemberButtons(); }
+  }
+  document.getElementById('adminTrigger').addEventListener('click',function(){
+    if(isOwner){ ownerForm.classList.toggle('open'); return; }
+    showPassModal();
+  });
+
+  document.getElementById('passOk').addEventListener('click', async function(){
+    var email=document.getElementById('authEmail').value.trim();
+    var pass=document.getElementById('authPass').value;
+    var errEl=document.getElementById('modalErr');
+    if(!supabase){ errEl.textContent='БД не подключена'; return; }
+    errEl.textContent='Вход...';
+    try{
+      var {data,error}=await supabase.auth.signInWithPassword({email:email,password:pass});
+      if(error) throw error;
+      if(email!==OWNER_EMAIL){ await supabase.auth.signOut(); errEl.textContent='Это не аккаунт владельца'; return; }
+      isOwner=true;
+      localStorage.setItem('yxs_session','1');
+      localStorage.setItem('yxs_owner_email', OWNER_EMAIL);
+      passModal.classList.remove('open');
+      localStorage.setItem('yxs_token', data.session.access_token);
+      localStorage.setItem('yxs_exp', String(Date.now()+EXPIRES*86400000));
+      updateOwnerUI();
+      render();
+      loadPosts();
+    }catch(e){
+      errEl.textContent='Неверный email или пароль';
+    }
+  });
+  document.getElementById('authPass').addEventListener('keydown',function(e){
+    if(e.key==='Enter') document.getElementById('passOk').click();
+  });
+  document.getElementById('authEmail').addEventListener('keydown',function(e){
+    if(e.key==='Enter') document.getElementById('passOk').click();
+  });
+  authLogoutBtn.addEventListener('click', async function(){
+    try{ await supabase.auth.signOut(); }catch(e){}
+    isOwner=false;
+    localStorage.removeItem('yxs_session');
+    localStorage.removeItem('yxs_owner_email');
+    localStorage.removeItem('yxs_token');
+    localStorage.removeItem('yxs_exp');
+    ownerForm.classList.remove('open');
+    updateMemberButtons();
+    render();
+    passModal.classList.remove('open');
+  });
+
+  // restore session on load
+  async function restoreSession(){
+    if(!supabase) return;
+    try{
+      var {data,error}=await supabase.auth.getSession();
+      var exp=parseInt(localStorage.getItem('yxs_exp')||'0',10);
+      var valid=localStorage.getItem('yxs_session')==='1' && exp > Date.now() && data && data.session;
+      if(valid){
+        isOwner=true;
+        updateOwnerUI();
+      }
+    }catch(e){}
+  }
+
+  // image management
+  var pendingImgs=[];
+  var imgInput=document.getElementById('imgInput');
+  var imgsRow=document.getElementById('imgsRow');
+  function fileToDataUrl(file){
+    return new Promise(function(resolve){
+      var r=new FileReader();
+      r.onload=function(){ resolve(r.result); };
+      r.readAsDataURL(file);
+    });
+  }
+  imgInput.addEventListener('change',async function(){
+    if(!this.files.length) return;
+    var small=[].slice.call(this.files).slice(0,6);
+    for(var i=0;i<small.length;i++){
+      if(pendingImgs.length>=6) break;
+      try{
+        var dataUrl=await fileToDataUrl(small[i]);
+        pendingImgs.push(dataUrl);
+      }catch(e){}
+    }
+    this.value='';
+    renderThumbs();
+    setStatus(pendingImgs.length>=6?'Максимум 6 фото':'','');
+  });
+  function renderThumbs(){
+    imgsRow.innerHTML='';
+    pendingImgs.forEach(function(d,i){
+      var t=document.createElement('div');
+      t.className='thumb';
+      t.innerHTML='<img src="'+d+'"><button onclick="removePending('+i+')">✕</button>';
+      imgsRow.appendChild(t);
+    });
+  }
+  window.removePending=function(i){
+    pendingImgs.splice(i,1);
+    renderThumbs();
+  };
+  function setStatus(msg, kind){
+    var s=document.getElementById('formStatus');
+    s.textContent=msg;
+    s.className='form-status '+(kind||'');
+  }
+
+  // upload image to storage, return public url
+  async function uploadImage(dataUrl, name){
+    var base64=dataUrl.split(',')[1];
+    var mime=(dataUrl.match(/^data:([^;]+)/)||[])[1]||'image/png';
+    var ext=mime.split('/')[1]||'png';
+    var bin=atob(base64);
+    var arr=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++){ arr[i]=bin.charCodeAt(i); }
+    var {data,error}=await supabase.storage.from('images').upload('posts/'+name, arr, {contentType:mime, upsert:true});
+    if(error) throw error;
+    var {data:pub}=supabase.storage.from('images').getPublicUrl('posts/'+name);
+    return pub.publicUrl;
+  }
+
+  document.getElementById('postSubmit').addEventListener('click',async function(){
+    var text=document.getElementById('postText').value.trim();
+    if(!isOwner){ setStatus('Войдите как владелец','err'); return; }
+    if(!text && !pendingImgs.length){ setStatus('Напиши текст или добавь фото','err'); return; }
+    var btn=document.getElementById('postSubmit');
+    btn.disabled=true; btn.textContent='Публикуем...';
+    setStatus('','');
+    try{
+      var imgUrls=[];
+      for(var i=0;i<pendingImgs.length;i++){
+        var name='img'+Date.now()+'_'+i+'.'+(pendingImgs[i].match(/^data:image\/(\w+)/)||[])[1]||'png';
+        imgUrls.push(await uploadImage(pendingImgs[i], name));
+      }
+      var {data,error}=await supabase.from('posts').insert({text:text, imgs:imgUrls});
+      if(error) throw error;
+      document.getElementById('postText').value='';
+      pendingImgs=[]; renderThumbs();
+      setStatus('Опубликовано','ok');
+      setTimeout(function(){ setStatus('',''); },2500);
+      await loadPosts();
+    }catch(e){
+      setStatus('Ошибка: '+e.message,'err');
+    }finally{
+      btn.disabled=false; btn.textContent='Опубликовать';
+    }
+  });
+  document.getElementById('postCancel').addEventListener('click',function(){
+    ownerForm.classList.remove('open');
+    setStatus('','');
+  });
+
+  // ============ Members (server table) ============
+  var MEM_STORE='yxs_members';
+  var memberListEl=document.getElementById('memberList');
+  var editMembersBtn=document.getElementById('membersEditBtn');
+  var editMembersModal=document.getElementById('editMembersModal');
+  var membersEditor=document.getElementById('membersEditor');
+  var editDraft=[];
+
+  var defaultMembers=[
+    {name:'YxS_Create', role:'Создатель сервера', hours:'8 500+', since:'2023', descr:'Владелец', status:'В сети', ava:''},
+    {name:'YxS_Lead', role:'Лидер', hours:'6 200+', since:'2023', descr:'Ведёт отряд 1', status:'В рейде', ava:''},
+    {name:'YxS_Zam', role:'Заместитель', hours:'5 100+', since:'2024', descr:'Ведёт отряд 2', status:'На базе', ava:''}
+  ];
+
+  async function loadMembers(){
+    if(!supabase) return defaultMembers;
+    try{
+      var {data,error}=await supabase.from('members').select('*').order('pos',{ascending:true});
+      if(error) throw error;
+      return (data&&data.length)?data:defaultMembers;
+    }catch(e){ return defaultMembers; }
+  }
+  async function saveMembers(list){
+    if(!supabase) return;
+    try{
+      if(list&&list.length){ await supabase.from('members').delete().neq('pos','-1'); }
+      for(var i=0;i<list.length;i++){
+        var {error}=await supabase.from('members').insert({pos:i, name:list[i].name, role:list[i].role, hours:list[i].hours, since:list[i].since, descr:list[i].descr, status:list[i].status, ava:list[i].ava||''});
+        if(error){ console.error(error); return false; }
+      }
+      return true;
+    }catch(e){ console.error(e); return false; }
+  }
+
+  async function renderMembers(){
+    var list=await loadMembers();
+    memberListEl.innerHTML='';
+    list.forEach(function(m,i){
+      var el=document.createElement('div');
+      el.className='member reveal in';
+      var ava=m.ava? '<img class="avatar" src="'+m.ava+'" alt="">' : '<div class="avatar">'+(m.name?m.name.slice(0,2).toUpperCase():'?')+'</div>';
+      el.innerHTML=
+        '<div class="rank">'+(i+1)+'</div>'+ava+
+        '<div class="mid"><h4>'+esc(m.name)+'</h4><div class="role">'+esc(m.role)+'</div></div>'+
+        '<div class="info"><ul>'+
+          '<li><span>Часы в Rust</span><b>'+esc(m.hours)+'</b></li>'+
+          '<li><span>В клане с</span><b>'+esc(m.since)+'</b></li>'+
+          '<li><span>Роль</span><b>'+esc(m.descr)+'</b></li>'+
+          '<li><span>Статус</span><b>'+esc(m.status)+'</b></li>'+
+        '</ul></div>';
+      memberListEl.appendChild(el);
+      if(io) io.observe(el);
+    });
+  }
+
+  function renderEditor(){
+    membersEditor.innerHTML='';
+    editDraft.forEach(function(m,i){
+      var row=document.createElement('div');
+      row.className='m-ed-row';
+      row.innerHTML=
+        '<div class="ava-preview" id="avaPrev'+i+'">'+(m._ava? '<img src="'+m._ava+'" style="width:100%;height:100%;object-fit:cover;display:block">' : (m.name?m.name.slice(0,2).toUpperCase():'?'))+'</div>'+
+        '<div class="m-ed-fields">'+
+          '<input type="text" data-i="'+i+'" data-k="name" value="'+esc(m.name)+'" placeholder="Ник">'+
+          '<input type="text" data-i="'+i+'" data-k="role" value="'+esc(m.role)+'" placeholder="Роль">'+
+          '<input type="text" data-i="'+i+'" data-k="hours" value="'+esc(m.hours)+'" placeholder="Часы в Rust">'+
+          '<input type="text" data-i="'+i+'" data-k="since" value="'+esc(m.since)+'" placeholder="В клане с (год)">'+
+          '<input type="text" data-i="'+i+'" data-k="descr" value="'+esc(m.descr)+'" placeholder="Описание роли">'+
+          '<input type="text" data-i="'+i+'" data-k="status" value="'+esc(m.status)+'" placeholder="Статус">'+
+          '<div class="m-ed-upload"><label>Изменить аватарку <input type="file" accept="image/*" style="display:none" data-ava="'+i+'"></label></div>'+
+        '</div>'+
+        '<button class="m-ed-del" data-del="'+i+'" title="Удалить">✕</button>';
+      membersEditor.appendChild(row);
+    });
+    membersEditor.querySelectorAll('input[data-k]').forEach(function(inp){
+      inp.addEventListener('input',function(){ editDraft[+inp.dataset.i][inp.dataset.k]=inp.value; refreshAva(+inp.dataset.i); });
+    });
+    membersEditor.querySelectorAll('input[data-ava]').forEach(function(inp){
+      inp.addEventListener('change',function(){
+        var i=+inp.dataset.ava;
+        var f=inp.files[0];
+        if(!f) return;
+        var r=new FileReader();
+        r.onload=async function(){
+          var url=await uploadMemberAvatar(r.result, 'ava'+Date.now()+'_'+i);
+          editDraft[i]._ava=url; refreshAva(i);
+        };
+        r.readAsDataURL(f);
+      });
+    });
+    membersEditor.querySelectorAll('[data-del]').forEach(function(btn){
+      btn.addEventListener('click',function(){ editDraft.splice(+btn.dataset.del,1); renderEditor(); });
+    });
+  }
+  async function uploadMemberAvatar(dataUrl, name){
+    var base64=dataUrl.split(',')[1];
+    var mime=(dataUrl.match(/^data:([^;]+)/)||[])[1]||'image/png';
+    var ext=mime.split('/')[1]||'png';
+    var bin=atob(base64);
+    var arr=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++){ arr[i]=bin.charCodeAt(i); }
+    var {data,error}=await supabase.storage.from('images').upload('avatars/'+name+'.'+ext, arr, {contentType:mime, upsert:true});
+    if(error) throw error;
+    var {data:pub}=supabase.storage.from('images').getPublicUrl('avatars/'+name+'.'+ext);
+    return pub.publicUrl;
+  }
+  function refreshAva(i){
+    var m=editDraft[i]; if(!m) return;
+    var p=document.getElementById('avaPrev'+i);
+    if(p){ p.innerHTML=m._ava? '<img src="'+m._ava+'" style="width:100%;height:100%;object-fit:cover;display:block">' : (m.name?m.name.slice(0,2).toUpperCase():'?'); }
+  }
+
+  function updateMemberButtons(){
+    var btn=document.getElementById('membersEditBtn');
+    if(btn) btn.style.display=isOwner?'inline-flex':'none';
+  }
+  document.getElementById('membersEditBtn').addEventListener('click',async function(){
+    if(!isOwner) return;
+    var list=await loadMembers();
+    editDraft=list.map(function(m){ return {name:m.name,role:m.role,hours:m.hours,since:m.since,descr:m.descr,status:m.status,_ava:m.ava||''}; });
+    renderEditor();
+    editMembersModal.classList.add('open');
+  });
+  document.getElementById('editMembersAdd').addEventListener('click',function(){
+    editDraft.push({name:'YxS_New',role:'Игрок',hours:'1 000+',since:'2026',desc:'Член клана',status:'Онлайн',_ava:''});
+    renderEditor();
+  });
+  document.getElementById('editMembersSave').addEventListener('click',async function(){
+    var clean=editDraft.map(function(m){ return {name:m.name,role:m.role,hours:m.hours,since:m.since,descr:m.descr,status:m.status,ava:m._ava||''}; });
+    var ok=await saveMembers(clean);
+    if(ok){ editMembersModal.classList.remove('open'); renderMembers(); }
+    else alert('Не удалось сохранить состав');
+  });
+  document.getElementById('editMembersClose').addEventListener('click',function(){
+    editMembersModal.classList.remove('open');
+  });
+
+  // ============ Init ============
+  updateMemberButtons();
+  loadPosts();
+  renderMembers();
+  restoreSession();
+</script>
+
+</body>
+</html>
