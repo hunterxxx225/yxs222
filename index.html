@@ -496,6 +496,33 @@
     .ring1{width:300px;height:300px;right:-80px;top:-40px}
     .ring2{width:200px;height:200px;right:0;top:20px}
   }
+
+  /* ===== Glassmorphism ===== */
+  .card,.member,.post,.s-card,.s-news-item,.c-item,
+  .server-rules,.complaint-sec,.my-ticket,.admin-complaints .c-item,
+  .timeline .post,.owner-form{
+    background:rgba(255,255,255,.045)!important;
+    backdrop-filter:blur(14px) saturate(130%);
+    -webkit-backdrop-filter:blur(14px) saturate(130%);
+    border:1px solid rgba(255,255,255,.12)!important;
+  }
+  .member:hover,.card:hover,.post:hover,.s-card:hover{border-color:rgba(255,255,255,.22)!important}
+  .hero .hero-shade{backdrop-filter:blur(6px)}
+  header{background:rgba(7,7,8,.55)!important}
+  .modal-card,.m-modal{background:rgba(20,20,24,.88)!important;backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%)}
+  /* server view glass (lighter) */
+  .view.server-view .card,.view.server-view .member,.view.server-view .post,
+  .view.server-view .s-card,.view.server-view .s-news-item,.view.server-view .c-item,
+  .view.server-view .server-rules,.view.server-view .complaint-sec,.view.server-view .my-ticket,
+  .view.server-view .admin-complaints .c-item{
+    background:rgba(255,255,255,.05)!important;
+    backdrop-filter:blur(14px) saturate(130%);
+    -webkit-backdrop-filter:blur(14px) saturate(130%);
+    border:1px solid rgba(255,255,255,.1)!important;
+  }
+  .view.server-view .member:hover,.view.server-view .card:hover,.view.server-view .post:hover{border-color:rgba(255,255,255,.2)!important}
+  .view.server-view .c-admin select,.view.server-view .c-admin input[type=text],
+  .view.server-view input[type=text],.view.server-view textarea{background:rgba(255,255,255,.06);backdrop-filter:blur(8px)}
 </style>
 </head>
 <body>
