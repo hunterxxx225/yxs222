@@ -208,7 +208,7 @@
   .m-ed-fields textarea:focus{outline:none;border-color:var(--red)}
 
   /* Server section (black&white) */
-  .server-sec{background:#101010;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}
+  .server-sec{padding:40px 0}
   .server-sec .sec-kicker{color:#cfcfcf}
   .server-sec h2{color:#fff}
   .server-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:52px}
@@ -328,6 +328,37 @@
   .foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
   .foot .logo{color:var(--text)}
 
+  /* ---------- View switcher (clan / server) ---------- */
+  .views-wrap{position:relative;overflow:hidden}
+  .view{width:100%;transition:transform .5s ease,opacity .5s}
+  .view.clan-view{display:block}
+  .view.server-view{display:none}
+  .views-wrap.server .view.server-view{display:block}
+  .views-wrap.server .view.clan-view{display:none}
+  .view-switcher{position:sticky;top:66px;z-index:40;display:flex;justify-content:center;gap:10px;
+    padding:12px 16px;background:rgba(7,7,8,.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)}
+  .sw-btn{cursor:pointer;padding:10px 26px;border-radius:10px;border:1px solid rgba(255,255,255,.12);
+    background:transparent;color:#9a9791;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.85rem;transition:.25s}
+  .sw-btn:hover{border-color:#fff;color:#fff}
+  .sw-btn.active{background:#fff;color:#0b0b0c;border-color:#fff}
+  .views-wrap.server .sw-btn.sb-server{background:#eaeaea;color:#000;border-color:#eaeaea}
+  .views-wrap.server .sw-btn.sb-clan{background:transparent;color:#cfcfcf}
+  .nav-arrows{position:fixed;top:52%;right:16px;z-index:45;display:flex;flex-direction:column;gap:8px}
+  .nav-arrows button{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.18);
+    background:rgba(0,0,0,.45);color:#fff;font-size:1.2rem;cursor:pointer;backdrop-filter:blur(4px);transition:.2s}
+  .nav-arrows button:hover{background:var(--red);border-color:var(--red)}
+  .ar-l{position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:45}
+  .ar-r{position:fixed;top:50%;right:10px;transform:translateY(-50%);z-index:45}
+  .ar-l button,.ar-r button{width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.18);
+    background:rgba(0,0,0,.5);color:#fff;font-size:1.4rem;cursor:pointer;backdrop-filter:blur(4px);transition:.2s}
+  .ar-l button:hover,.ar-r button:hover{background:var(--red);border-color:var(--red)}
+  /* server view is black&white */
+  .view.server-view{background:#0d0d0d;color:#efefef;min-height:100vh;padding-top:60px}
+  .view.server-view .sec-kicker{color:#cfcfcf}
+  .view.server-view h2,.view.server-view h3{color:#fff}
+  .view.server-view .s-card{background:#1a1a1a}
+  .sw-badge{display:inline-flex;align-items:center;gap:8px;color:#8a8a8a;font-size:.85rem;letter-spacing:.06em}
+
   @media(max-width:680px){
     .menu{display:none;position:absolute;top:68px;left:0;right:0;flex-direction:column;
       background:rgba(7,7,8,.96);border-bottom:1px solid var(--line);padding:18px 24px;gap:16px;
@@ -354,7 +385,6 @@
     </div>
     <nav class="menu" id="menu">
       <a href="#about">О клане</a>
-      <a href="#server">Сервер</a>
       <a href="#progress">Прогресс</a>
       <a href="#recruit">Рекрут</a>
       <a href="#members">Состав</a>
@@ -363,6 +393,14 @@
     <button class="burger" id="burger" aria-label="Меню">☰</button>
   </div>
 </header>
+
+<div class="view-switcher">
+  <button class="sw-btn sb-clan active" id="swClan">Клан</button>
+  <button class="sw-btn sb-server" id="swServer">Сервер</button>
+</div>
+
+<div class="views-wrap" id="viewsWrap">
+<div class="view clan-view" id="clanView">
 
 <section class="hero">
   <img src="banner.webp" alt="" class="hero-banner">
@@ -432,54 +470,6 @@
   </div>
 </div>
 
-<section id="server" class="server-sec">
-  <div class="container">
-    <div class="sec-head reveal">
-      <div class="sec-kicker" style="color:#cfcfcf">Наш сервер</div>
-      <h2>YxS · Сервер</h2>
-      <p>Заходи, стройся, воюй. Здесь живёт комьюнити — новости, правила и важное о сервере.</p>
-    </div>
-
-    <!-- Основное о сервере -->
-    <div class="server-info reveal">
-      <div class="s-card"><div class="s-label">Тип</div><div class="s-val">Vanilla / PvP</div></div>
-      <div class="s-card"><div class="s-label">Карта</div><div class="s-val">Hapis · 4K</div></div>
-      <div class="s-card"><div class="s-label">Вайп</div><div class="s-val">Кажд. четверг</div></div>
-      <div class="s-card"><div class="s-label">Онлайн</div><div class="s-val">~80+</div></div>
-      <div class="s-card s-ip"><div class="s-label">Подключение</div><div class="s-val">IP: yxs.clan-server.ru</div></div>
-    </div>
-
-    <!-- Новости сервера -->
-    <div class="server-news-head reveal">
-      <h3>Новости сервера</h3>
-      <span id="serverNewsHint">Публикуются владельцем</span>
-    </div>
-    <div class="s-news-form reveal" id="serverNewsForm" style="display:none">
-      <div class="field">
-        <textarea id="serverNewsText" rows="3" placeholder="Напиши новость сервера..."></textarea>
-      </div>
-      <div class="form-actions">
-        <button class="btn-submit" id="serverNewsSubmit">Опубликовать</button>
-        <button class="btn-cancel" id="serverNewsCancel">Отмена</button>
-      </div>
-      <div class="form-status" id="serverNewsStatus"></div>
-    </div>
-    <div class="s-news" id="serverNewsList"><p style="color:var(--muted)">Новостей пока нет.</p></div>
-
-    <!-- Правила сервера -->
-    <div class="server-rules reveal">
-      <h3>Правила сервера</h3>
-      <ul>
-        <li><span class="r-num">01</span>Не использовать читы, скрипты и уязвимости. Бан без предупреждений.</li>
-        <li><span class="r-num">02</span>Уважение к игрокам. Токсик, расизм и травля запрещены.</li>
-        <li><span class="r-num">03</span>Греф чужых зданий и воровство из чужих тулкепсов — нарушение.</li>
-        <li><span class="r-num">04</span>Эксплойт карты и багов — причина для бана.</li>
-        <li><span class="r-num">05</span>Вопросы к админам — через Discord. Админы неиммунны к правилам.</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
 <section id="progress">
   <div class="container">
     <div class="progress-head">
@@ -542,6 +532,8 @@
   </div>
 </section>
 
+</div><!-- /clanView -->
+
 <!-- edit members modal -->
 <div class="modal" id="editMembersModal">
   <div class="modal-card" style="max-width:720px;max-height:88vh;overflow-y:auto">
@@ -555,6 +547,55 @@
   </div>
 </div>
 
+<div class="view server-view" id="serverView">
+<section id="server" class="server-sec">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-kicker" style="color:#cfcfcf">Наш сервер</div>
+      <h2>YxS · Сервер</h2>
+      <p>Заходи, стройся, воюй. Здесь живёт комьюнити — новости, правила и важное о сервере.</p>
+    </div>
+
+    <div class="server-info reveal">
+      <div class="s-card"><div class="s-label">Тип</div><div class="s-val">Vanilla / PvP</div></div>
+      <div class="s-card"><div class="s-label">Карта</div><div class="s-val">Hapis · 4K</div></div>
+      <div class="s-card"><div class="s-label">Вайп</div><div class="s-val">Кажд. четверг</div></div>
+      <div class="s-card"><div class="s-label">Онлайн</div><div class="s-val">~80+</div></div>
+      <div class="s-card s-ip"><div class="s-label">Подключение</div><div class="s-val">IP: yxs.clan-server.ru</div></div>
+    </div>
+
+    <div class="server-news-head reveal">
+      <h3>Новости сервера</h3>
+      <span id="serverNewsHint">Публикуются владельцем</span>
+    </div>
+    <div class="s-news-form reveal" id="serverNewsForm" style="display:none">
+      <div class="field">
+        <textarea id="serverNewsText" rows="3" placeholder="Напиши новость сервера..."></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn-submit" id="serverNewsSubmit">Опубликовать</button>
+        <button class="btn-cancel" id="serverNewsCancel">Отмена</button>
+      </div>
+      <div class="form-status" id="serverNewsStatus"></div>
+    </div>
+    <div class="s-news" id="serverNewsList"><p style="color:var(--muted)">Новостей пока нет.</p></div>
+
+    <div class="server-rules reveal">
+      <h3>Правила сервера</h3>
+      <ul>
+        <li><span class="r-num">01</span>Не использовать читы, скрипты и уязвимости. Бан без предупреждений.</li>
+        <li><span class="r-num">02</span>Уважение к игрокам. Токсик, расизм и травля запрещены.</li>
+        <li><span class="r-num">03</span>Греф чужых зданий и воровство из чужих тулкепсов — нарушение.</li>
+        <li><span class="r-num">04</span>Эксплойт карты и багов — причина для бана.</li>
+        <li><span class="r-num">05</span>Вопросы к админам — через Discord. Админы неиммунны к правилам.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+</div><!-- /serverView -->
+
+</div><!-- /viewsWrap -->
+
 <footer>
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
@@ -562,6 +603,10 @@
     <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.1 · админ</span>
   </div>
 </footer>
+
+<!-- view navigation arrows -->
+<div class="ar-l"><button id="arrowLeft" aria-label="Назад">◀</button></div>
+<div class="ar-r"><button id="arrowRight" aria-label="Вперёд">▶</button></div>
 
 <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -1042,6 +1087,58 @@
     if(isOwner && hint){ hint.textContent='Владелец: плюсуешь новость ниже'; }
     if(isOwner && serverNewsForm){ serverNewsForm.style.display='block'; }
   }
+
+  // ============ View switcher (clan / server) ============
+  var viewsWrap=document.getElementById('viewsWrap');
+  var clanView=document.getElementById('clanView');
+  var serverView=document.getElementById('serverView');
+  var swClan=document.getElementById('swClan');
+  var swServer=document.getElementById('swServer');
+  var arrowLeft=document.getElementById('arrowLeft');
+  var arrowRight=document.getElementById('arrowRight');
+  var currentView='clan';
+
+  function setView(v, animate){
+    currentView=v;
+    if(v==='server'){
+      viewsWrap.classList.add('server');
+      swServer.classList.add('active'); swClan.classList.remove('active');
+    }else{
+      viewsWrap.classList.remove('server');
+      swClan.classList.add('active'); swServer.classList.remove('active');
+    }
+    try{ history.replaceState(null,'', v==='server' ? '#server' : '#clan'); }catch(e){}
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function toggleViews(dir){
+    // dir: 'next' -> server, 'prev' -> clan
+    if(dir==='prev' && currentView==='server'){ setView('clan'); }
+    else if(dir==='next' && currentView==='clan'){ setView('server'); }
+  }
+
+  swClan.addEventListener('click',function(){ setView('clan'); });
+  swServer.addEventListener('click',function(){ setView('server'); });
+  arrowLeft.addEventListener('click',function(){ toggleViews('prev'); });
+  arrowRight.addEventListener('click',function(){ toggleViews('next'); });
+
+  // swipe support
+  var touchX=null;
+  document.addEventListener('touchstart',function(e){ touchX=e.changedTouches[0].clientX; },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(touchX===null) return;
+    var dx=e.changedTouches[0].clientX - touchX;
+    if(Math.abs(dx)>50){ toggleViews(dx<0?'next':'prev'); }
+    touchX=null;
+  },{passive:true});
+  // keyboard arrows
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'){ toggleViews('next'); }
+    else if(e.key==='ArrowLeft'){ toggleViews('prev'); }
+  });
+
+  // start on hash if #server
+  if(location.hash==='#server'){ setView('server'); }
+  else { setView('clan'); }
 
   // ============ Init ============
   updateMemberButtons();
