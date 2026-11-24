@@ -147,20 +147,19 @@
 
   /* members + recruit tiles */
   .members{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px}
-  #members .members{display:flex;flex-direction:column;gap:16px}
-  #members .member{display:grid;grid-template-columns:auto 52px 1fr;align-items:center;gap:20px;
-    text-align:left;padding:18px 22px;max-width:none;min-width:0;flex:none}
-  #members .member .avatar{margin:0;width:52px;height:52px}
-  #members .member .mid{display:flex;flex-direction:column}
-  #members .member .rank{font-size:1.5rem;font-weight:900;color:var(--ember);text-align:center;line-height:1;
-    text-shadow:0 0 14px rgba(255,122,26,.4);min-width:30px}
-  #members .member .info{grid-column:1/-1;text-align:left}
+  #members .members{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:18px}
+  #members .member{display:flex;flex-direction:column;align-items:center;text-align:center;
+    padding:26px 18px;max-width:none;min-width:0;flex:none}
+  #members .member .avatar{margin:0 0 14px;width:76px;height:76px;cursor:pointer;transition:.3s;
+    box-shadow:0 0 24px -4px var(--glow), inset 0 0 0 2px rgba(255,255,255,.12);object-fit:cover}
+  #members .member .avatar:hover{transform:scale(1.08)}
+  #members .member .mid{display:flex;flex-direction:column;align-items:center}
+  #members .member .rank{display:none}
+  #members .member .role{color:var(--red);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+    margin-top:5px;font-weight:700}
   .member{background:var(--panel);border:1px solid rgba(255,255,255,.05);padding:28px 24px;border-radius:16px;
     text-align:center;transition:.35s;position:relative;overflow:hidden}
-  .member::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
-    background:linear-gradient(90deg,var(--red),var(--ember));opacity:0;transition:.35s}
-  .member:hover{transform:translateY(-5px);border-color:var(--line);box-shadow:0 18px 44px -18px var(--glow)}
-  .member:hover::before{opacity:1}
+  .member:hover{transform:translateY(-4px);border-color:var(--line);box-shadow:0 18px 40px -18px var(--glow)}
   .avatar{width:58px;height:58px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;
     font-weight:900;color:#fff;font-size:1.3rem;position:relative;
     background:linear-gradient(135deg,var(--red),var(--red-dark));
@@ -182,15 +181,23 @@
   .m-ed-upload label{cursor:pointer;color:var(--red);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase}
   .m-ed-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.3rem;line-height:1;padding:4px}
   .m-ed-del:hover{color:var(--red)}
-  /* hidden detail opens on hover */
-  .member .info{max-height:0;opacity:0;overflow:hidden;transition:max-height .45s ease,opacity .35s,margin .35s;
-    margin-top:0;text-align:left}
-  .member:hover .info,.member:focus-within .info{max-height:220px;opacity:1;margin-top:18px}
-  .member .info ul{list-style:none;display:flex;flex-direction:column;gap:7px}
-  .member .info li{display:flex;justify-content:space-between;gap:12px;font-size:.85rem;color:var(--muted);
-    padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
-  .member .info li:last-child{border-bottom:none}
-  .member .info li b{color:var(--text);font-weight:600;white-space:nowrap}
+
+  /* member card modal */
+  .memberCardOverlay{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.85);display:none;
+    align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+  .memberCardOverlay.open{display:flex}
+  .m-modal{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:36px;width:100%;max-width:360px;
+    text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.7)}
+  .m-big-ava{width:96px;height:96px;border-radius:50%;object-fit:cover;margin:0 auto 18px;display:block;
+    background:linear-gradient(135deg,var(--red),var(--red-dark));box-shadow:0 0 30px -6px var(--glow)}
+  .m-big-ava-text{display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1.8rem}
+  .m-modal h3{font-size:1.5rem;font-weight:800}
+  .m-role{color:var(--red);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;margin-top:6px;font-weight:700}
+  .m-list{list-style:none;margin-top:20px;display:flex;flex-direction:column;gap:2px;text-align:left}
+  .m-list li{display:flex;justify-content:space-between;gap:12px;font-size:.92rem;color:var(--muted);
+    padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .m-list li:last-child{border-bottom:none}
+  .m-list li b{color:var(--text);font-weight:600;white-space:nowrap}
 
   /* CTA band */
   .cta-band{position:relative;padding:110px 0;text-align:center;overflow:hidden}
@@ -422,6 +429,7 @@
 </section>
 
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt=""></div>
+<div class="memberCardOverlay" id="memberOverlay"></div>
 
 <div class="modal" id="passModal">
   <div class="modal-card">
@@ -535,7 +543,7 @@
       });
       el.innerHTML=
         '<div class="post-top">'+
-          '<span class="post-author">YxS_Owner<span class="badge">ОУНЕР</span></span>'+
+          '<span class="post-author">YxS</span>'+
           '<span class="post-date">'+date+'</span>'+
           '<span class="post-time">'+time+'</span>'+
         '</div>'+
@@ -665,9 +673,9 @@
   }
   imgInput.addEventListener('change',async function(){
     if(!this.files.length) return;
-    var small=[].slice.call(this.files).slice(0,6);
+    var small=[].slice.call(this.files).slice(0,9);
     for(var i=0;i<small.length;i++){
-      if(pendingImgs.length>=6) break;
+      if(pendingImgs.length>=9) break;
       try{
         var dataUrl=await fileToDataUrl(small[i]);
         pendingImgs.push(dataUrl);
@@ -675,7 +683,7 @@
     }
     this.value='';
     renderThumbs();
-    setStatus(pendingImgs.length>=6?'Максимум 6 фото':'','');
+    setStatus(pendingImgs.length>=9?'Максимум 9 фото':'','');
   });
   function renderThumbs(){
     imgsRow.innerHTML='';
@@ -783,18 +791,37 @@
       el.className='member reveal in';
       var ava=m.ava? '<img class="avatar" src="'+m.ava+'" alt="">' : '<div class="avatar">'+(m.name?m.name.slice(0,2).toUpperCase():'?')+'</div>';
       el.innerHTML=
-        '<div class="rank">'+(i+1)+'</div>'+ava+
-        '<div class="mid"><h4>'+esc(m.name)+'</h4><div class="role">'+esc(m.role)+'</div></div>'+
-        '<div class="info"><ul>'+
-          '<li><span>Часы в Rust</span><b>'+esc(m.hours)+'</b></li>'+
-          '<li><span>В клане с</span><b>'+esc(m.since)+'</b></li>'+
-          '<li><span>Роль</span><b>'+esc(m.descr)+'</b></li>'+
-          '<li><span>Статус</span><b>'+esc(m.status)+'</b></li>'+
-        '</ul></div>';
+        ava+
+        '<div class="mid"><h4>'+esc(m.name)+'</h4><div class="role">'+esc(m.role)+'</div></div>';
+      // клик по аватару открывает карточку с полной инфой
+      var avaEl=el.querySelector('.avatar');
+      if(avaEl) avaEl.addEventListener('click',function(){ openMemberCard(m); });
       memberListEl.appendChild(el);
       if(io) io.observe(el);
     });
   }
+
+  function openMemberCard(m){
+    var ov=document.getElementById('memberOverlay');
+    var inner=(m.ava? '<img class="m-big-ava" src="'+m.ava+'" alt="">' : '<div class="m-big-ava m-big-ava-text">'+(m.name?m.name.slice(0,2).toUpperCase():'?')+'</div>');
+    ov.innerHTML=
+      '<div class="m-modal">'+
+        inner+
+        '<h3>'+esc(m.name)+'</h3>'+
+        '<div class="m-role">'+esc(m.role)+'</div>'+
+        '<ul class="m-list">'+
+          '<li><span>Часы в Rust</span><b>'+esc(m.hours)+'</b></li>'+
+          '<li><span>В клане с</span><b>'+esc(m.since)+'</b></li>'+
+          '<li><span>Роль</span><b>'+esc(m.descr)+'</b></li>'+
+          '<li><span>Статус</span><b>'+esc(m.status)+'</b></li>'+
+        '</ul>'+
+        '<button class="btn btn-ghost" style="margin-top:16px" onclick="closeMemberCard()">Закрыть</button>'+
+      '</div>';
+    ov.classList.add('open');
+  }
+  window.closeMemberCard=function(){
+    document.getElementById('memberOverlay').classList.remove('open');
+  };
 
   function renderEditor(){
     membersEditor.innerHTML='';
