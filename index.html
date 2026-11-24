@@ -335,8 +335,8 @@
   .view.server-view{display:none}
   .views-wrap.server .view.server-view{display:block}
   .views-wrap.server .view.clan-view{display:none}
-  .view-switcher{position:sticky;top:66px;z-index:40;display:flex;justify-content:center;gap:10px;
-    padding:12px 16px;background:rgba(7,7,8,.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)}
+  .head-switch{display:flex;align-items:center;gap:8px}
+  .head-switch .sw-btn{padding:7px 18px;font-size:.78rem}
   .sw-btn{cursor:pointer;padding:10px 26px;border-radius:10px;border:1px solid rgba(255,255,255,.12);
     background:transparent;color:#9a9791;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.85rem;transition:.25s}
   .sw-btn:hover{border-color:#fff;color:#fff}
@@ -504,17 +504,16 @@
 
 <header id="header">
   <div class="container nav">
-    <div class="logo">
+    <div class="logo" id="logoClickable">
       <img src="logo.png" alt="YxS" class="mark logo-img">
       <span><span class="yxs">YxS</span></span>
     </div>
+    <div class="head-switch">
+      <button class="sw-btn sb-clan active" id="swClan">Клан</button>
+      <button class="sw-btn sb-server" id="swServer">Сервер</button>
+    </div>
   </div>
 </header>
-
-<div class="view-switcher">
-  <button class="sw-btn sb-clan active" id="swClan">Клан</button>
-  <button class="sw-btn sb-server" id="swServer">Сервер</button>
-</div>
 
 <div class="views-wrap" id="viewsWrap">
 <div class="view clan-view" id="clanView">
@@ -1266,6 +1265,9 @@
 
   swClan.addEventListener('click',function(){ setView('clan'); });
   swServer.addEventListener('click',function(){ setView('server'); });
+  // клик по логотипу — переключение вида
+  var logoClick=document.getElementById('logoClickable');
+  if(logoClick) logoClick.addEventListener('click',function(){ toggleViews(currentView==='clan'?'next':'prev'); });
   arrowLeft.addEventListener('click',function(){ toggleViews('prev'); });
   arrowRight.addEventListener('click',function(){ toggleViews('next'); });
 
