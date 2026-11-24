@@ -193,11 +193,10 @@
   .m-big-ava-text{display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1.8rem}
   .m-modal h3{font-size:1.5rem;font-weight:800}
   .m-role{color:var(--red);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;margin-top:6px;font-weight:700}
-  .m-list{list-style:none;margin-top:20px;display:flex;flex-direction:column;gap:2px;text-align:left}
-  .m-list li{display:flex;justify-content:space-between;gap:12px;font-size:.92rem;color:var(--muted);
-    padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.05)}
-  .m-list li:last-child{border-bottom:none}
-  .m-list li b{color:var(--text);font-weight:600;white-space:nowrap}
+  .m-info{color:var(--muted);font-size:.95rem;line-height:1.6;margin-top:18px;white-space:pre-wrap;word-break:break-word;text-align:left}
+  .m-ed-fields textarea{width:100%;background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:8px;
+    color:var(--text);padding:9px 12px;font-size:.92rem;font-family:inherit;resize:vertical}
+  .m-ed-fields textarea:focus{outline:none;border-color:var(--red)}
 
   /* CTA band */
   .cta-band{position:relative;padding:110px 0;text-align:center;overflow:hidden}
@@ -758,9 +757,9 @@
   var editDraft=[];
 
   var defaultMembers=[
-    {name:'YxS_Create', role:'Создатель сервера', hours:'8 500+', since:'2023', descr:'Владелец', status:'В сети', ava:''},
-    {name:'YxS_Lead', role:'Лидер', hours:'6 200+', since:'2023', descr:'Ведёт отряд 1', status:'В рейде', ava:''},
-    {name:'YxS_Zam', role:'Заместитель', hours:'5 100+', since:'2024', descr:'Ведёт отряд 2', status:'На базе', ava:''}
+    {name:'YxS_Create', role:'Создатель сервера', info:'Создатель и владелец сервера', ava:''},
+    {name:'YxS_Lead', role:'Лидер', info:'Ведёт отряд, решает планы рейдов', ava:''},
+    {name:'YxS_Zam', role:'Заместитель', info:'Помогает лидеру, следит за порядком', ava:''}
   ];
 
   async function loadMembers(){
@@ -776,7 +775,7 @@
     try{
       if(list&&list.length){ await supabase.from('members').delete().neq('pos','-1'); }
       for(var i=0;i<list.length;i++){
-        var {error}=await supabase.from('members').insert({pos:i, name:list[i].name, role:list[i].role, hours:list[i].hours, since:list[i].since, descr:list[i].descr, status:list[i].status, ava:list[i].ava||''});
+        var {error}=await supabase.from('members').insert({pos:i, name:list[i].name, role:list[i].role, info:list[i].info, ava:list[i].ava||''});
         if(error){ console.error(error); return false; }
       }
       return true;
@@ -808,12 +807,7 @@
         inner+
         '<h3>'+esc(m.name)+'</h3>'+
         '<div class="m-role">'+esc(m.role)+'</div>'+
-        '<ul class="m-list">'+
-          '<li><span>Часы в Rust</span><b>'+esc(m.hours)+'</b></li>'+
-          '<li><span>В клане с</span><b>'+esc(m.since)+'</b></li>'+
-          '<li><span>Роль</span><b>'+esc(m.descr)+'</b></li>'+
-          '<li><span>Статус</span><b>'+esc(m.status)+'</b></li>'+
-        '</ul>'+
+        (m.info?'<p class="m-info">'+esc(m.info)+'</p>':'')+
         '<button class="btn btn-ghost" style="margin-top:16px" onclick="closeMemberCard()">Закрыть</button>'+
       '</div>';
     ov.classList.add('open');
@@ -831,12 +825,9 @@
         '<div class="ava-preview" id="avaPrev'+i+'">'+(m._ava? '<img src="'+m._ava+'" style="width:100%;height:100%;object-fit:cover;display:block">' : (m.name?m.name.slice(0,2).toUpperCase():'?'))+'</div>'+
         '<div class="m-ed-fields">'+
           '<input type="text" data-i="'+i+'" data-k="name" value="'+esc(m.name)+'" placeholder="Ник">'+
-          '<input type="text" data-i="'+i+'" data-k="role" value="'+esc(m.role)+'" placeholder="Роль">'+
-          '<input type="text" data-i="'+i+'" data-k="hours" value="'+esc(m.hours)+'" placeholder="Часы в Rust">'+
-          '<input type="text" data-i="'+i+'" data-k="since" value="'+esc(m.since)+'" placeholder="В клане с (год)">'+
-          '<input type="text" data-i="'+i+'" data-k="descr" value="'+esc(m.descr)+'" placeholder="Описание роли">'+
-          '<input type="text" data-i="'+i+'" data-k="status" value="'+esc(m.status)+'" placeholder="Статус">'+
-          '<div class="m-ed-upload"><label>Изменить аватарку <input type="file" accept="image/*" style="display:none" data-ava="'+i+'"></label></div>'+
+          '<input type="text" data-i="'+i+'" data-k="role" value="'+esc(m.role)+'" placeholder="Роль (Лидер, Зам...)">'+
+          '<textarea data-i="'+i+'" data-k="info" rows="3" placeholder="Свободная информация об игроке — что угодно (контакты, факты, описание)">'+esc(m.info)+'</textarea>'+
+          '<div class="m-ed-upload"><label>Аватарка <input type="file" accept="image/*" style="display:none" data-ava="'+i+'"></label></div>'+
         '</div>'+
         '<button class="m-ed-del" data-del="'+i+'" title="Удалить">✕</button>';
       membersEditor.appendChild(row);
@@ -886,16 +877,16 @@
   document.getElementById('membersEditBtn').addEventListener('click',async function(){
     if(!isOwner) return;
     var list=await loadMembers();
-    editDraft=list.map(function(m){ return {name:m.name,role:m.role,hours:m.hours,since:m.since,descr:m.descr,status:m.status,_ava:m.ava||''}; });
+    editDraft=list.map(function(m){ return {name:m.name,role:m.role,info:m.info||'',_ava:m.ava||''}; });
     renderEditor();
     editMembersModal.classList.add('open');
   });
   document.getElementById('editMembersAdd').addEventListener('click',function(){
-    editDraft.push({name:'',role:'Игрок',hours:'',since:'',descr:'',status:'Онлайн',_ava:''});
+    editDraft.push({name:'',role:'Игрок',info:'',_ava:''});
     renderEditor();
   });
   document.getElementById('editMembersSave').addEventListener('click',async function(){
-    var clean=editDraft.map(function(m){ return {name:m.name,role:m.role,hours:m.hours,since:m.since,descr:m.descr,status:m.status,ava:m._ava||''}; });
+    var clean=editDraft.map(function(m){ return {name:m.name,role:m.role,info:m.info||'',ava:m._ava||''}; });
     var ok=await saveMembers(clean);
     if(ok){ editMembersModal.classList.remove('open'); renderMembers(); }
     else alert('Не удалось сохранить состав');
