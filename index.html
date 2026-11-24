@@ -508,14 +508,6 @@
       <img src="logo.png" alt="YxS" class="mark logo-img">
       <span><span class="yxs">YxS</span></span>
     </div>
-    <nav class="menu" id="menu">
-      <a href="#about">О клане</a>
-      <a href="#progress">Прогресс</a>
-      <a href="#recruit">Рекрут</a>
-      <a href="#members">Состав</a>
-      <button class="menu-cta" onclick="location.href='https://discord.gg/yxs'">Вступить</button>
-    </nav>
-    <button class="burger" id="burger" aria-label="Меню">☰</button>
   </div>
 </header>
 
@@ -785,12 +777,6 @@
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
     });
   }
-
-  // ============ Burger menu ============
-  var burger=document.getElementById('burger');
-  var menu=document.getElementById('menu');
-  burger.addEventListener('click',function(){ menu.classList.toggle('open'); });
-  menu.addEventListener('click',function(e){ if(e.target.tagName==='A'||e.target.tagName==='BUTTON'){menu.classList.remove('open');} });
 
   // header shadow on scroll
   var header=document.getElementById('header');
