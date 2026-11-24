@@ -207,31 +207,31 @@
     color:var(--text);padding:9px 12px;font-size:.92rem;font-family:inherit;resize:vertical}
   .m-ed-fields textarea:focus{outline:none;border-color:var(--red)}
 
-  /* Server section (black&white) */
+  /* Server section */
   .server-sec{padding:40px 0}
-  .server-sec .sec-kicker{color:#cfcfcf}
-  .server-sec h2{color:#fff}
+  .server-sec .sec-kicker{color:var(--red)}
+  .server-sec h2{color:var(--text)}
   .server-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:52px}
-  .s-card{background:#171717;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px 18px;text-align:center;transition:.3s}
-  .s-card:hover{border-color:rgba(255,255,255,.2);transform:translateY(-3px)}
-  .s-card .s-label{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:#8a8a8a;margin-bottom:6px}
-  .s-card .s-val{font-size:1.1rem;font-weight:700;color:#fff}
+  .s-card{background:var(--panel);border:1px solid rgba(255,60,60,.12);border-radius:14px;padding:20px 18px;text-align:center;transition:.3s}
+  .s-card:hover{border-color:var(--line);transform:translateY(-3px);box-shadow:0 14px 34px -18px var(--glow)}
+  .s-card .s-label{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .s-card .s-val{font-size:1.1rem;font-weight:700;color:var(--text)}
   .s-card.s-ip{grid-column:1/-1}
-  .s-card.s-ip .s-val{color:#c9c9c9;letter-spacing:.04em}
+  .s-card.s-ip .s-val{color:var(--text);letter-spacing:.04em}
   .server-news-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
   .server-news-head h3{font-size:1.4rem;font-weight:800;color:#fff}
   .server-news-head span{color:#8a8a8a;font-size:.8rem}
   .s-news{display:flex;flex-direction:column;gap:14px;margin-bottom:52px}
-  .s-news-item{background:#161616;border:1px solid rgba(255,255,255,.07);border-left:3px solid #9a9a9a;border-radius:12px;padding:16px 18px}
+  .s-news-item{background:var(--panel);border:1px solid rgba(255,60,60,.1);border-left:3px solid var(--red);border-radius:12px;padding:16px 18px}
   .s-news-item .s-top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:6px}
   .s-news-item .s-date{color:#8a8a8a;font-size:.8rem}
   .s-news-item p{color:#e6e6e6;font-size:.96rem;white-space:pre-wrap;word-break:break-word}
-  .server-rules{background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:30px}
-  .server-rules h3{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:18px}
+  .server-rules{background:var(--panel);border:1px solid rgba(255,60,60,.1);border-radius:16px;padding:30px}
+  .server-rules h3{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:18px}
   .server-rules ul{list-style:none;display:flex;flex-direction:column}
-  .server-rules li{display:flex;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);color:#cfcfcf;font-size:.96rem}
+  .server-rules li{display:flex;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);color:var(--muted);font-size:.96rem}
   .server-rules li:last-child{border-bottom:none}
-  .server-rules .r-num{color:#8a8a8a;font-weight:800;min-width:24px}
+  .server-rules .r-num{color:var(--red);font-weight:800;min-width:24px}
   .s-news-form{margin-bottom:22px}
 
   /* CTA band */
@@ -353,24 +353,36 @@
     background:rgba(0,0,0,.5);color:#fff;font-size:1.4rem;cursor:pointer;backdrop-filter:blur(4px);transition:.2s}
   .ar-l button:hover,.ar-r button:hover{background:var(--red);border-color:var(--red)}
   /* server view is black&white */
-  .view.server-view{background:#0d0d0d;color:#efefef;min-height:100vh;padding-top:60px}
-  .view.server-view .sec-kicker{color:#cfcfcf}
-  .view.server-view h2,.view.server-view h3{color:#fff}
-  .view.server-view .s-card{background:#1a1a1a}
+  .view.server-view{background:var(--bg);color:var(--text);min-height:100vh;padding-top:60px}
+  .view.server-view .sec-kicker{color:var(--red)}
+  .view.server-view h2,.view.server-view h3{color:var(--text)}
+  .view.server-view h3 em,.view.server-view .kicker{background:linear-gradient(90deg,var(--red-bright),var(--ember));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .sw-badge{display:inline-flex;align-items:center;gap:8px;color:#8a8a8a;font-size:.85rem;letter-spacing:.06em}
 
   /* complaint */
-  .complaint-sec{background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:30px;margin-top:34px}
-  .complaint-sec h3{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:4px}
-  .complaint-sub{color:#8a8a8a;font-size:.9rem;margin-bottom:18px}
+  .complaint-sec{background:var(--panel);border:1px solid rgba(255,60,60,.1);border-radius:16px;padding:30px;margin-top:34px}
+  .complaint-sec h3{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:4px}
+  .complaint-sub{color:var(--muted);font-size:.9rem;margin-bottom:18px}
   .complaint-form{display:flex;flex-direction:column;gap:12px}
-  .admin-complaints h3{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:14px}
-  .admin-complaints .c-item{background:#161616;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+  .admin-complaints h3{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:14px}
+  .admin-complaints .c-item{background:var(--bg2);border:1px solid rgba(255,60,60,.1);border-radius:12px;padding:14px 16px;margin-bottom:12px}
   .admin-complaints .c-item .c-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px}
-  .admin-complaints .c-item .c-who{font-weight:700;color:#fff;font-size:.92rem}
-  .admin-complaints .c-item .c-date{color:#8a8a8a;font-size:.78rem}
-  .admin-complaints .c-item .c-on{color:#cfcfcf;font-size:.8rem;margin-bottom:4px}
-  .admin-complaints .c-item .c-text{color:#e6e6e6;font-size:.92rem;white-space:pre-wrap;word-break:break-word}
+  .admin-complaints .c-item .c-who{font-weight:700;color:var(--text);font-size:.92rem}
+  .admin-complaints .c-item .c-date{color:var(--muted);font-size:.78rem}
+  .admin-complaints .c-item .c-on{color:var(--muted);font-size:.8rem;margin-bottom:4px}
+  .admin-complaints .c-item .c-text{color:var(--text);font-size:.92rem;white-space:pre-wrap;word-break:break-word}
+  .c-status{font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px}
+  .c-status.st-open{background:rgba(255,60,60,.15);color:var(--red)}
+  .c-status.st-progress{background:rgba(255,122,26,.15);color:var(--ember)}
+  .c-status.st-resolved{background:rgba(95,219,122,.15);color:#5fdb7a}
+  .c-reply{margin-top:8px;padding:10px 12px;background:var(--bg);border-left:3px solid var(--red);border-radius:8px;color:var(--text);font-size:.88rem;white-space:pre-wrap}
+  .c-admin{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  .c-admin select,.c-admin input[type=text]{background:var(--bg2);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);padding:8px 10px;font-size:.85rem}
+  .c-admin input[type=text]{flex:1;min-width:160px}
+  .c-admin select:focus,.c-admin input[type=text]:focus{outline:none;border-color:var(--red)}
+  .c-submit{background:var(--red);border:none;color:#fff;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:.8rem;letter-spacing:.04em}
+  .c-submit:hover{background:var(--red-dark)}
+  .my-ticket h3{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:4px}
   .admin-complaints .c-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;margin-left:auto}
 
   @media(max-width:680px){
@@ -565,7 +577,7 @@
 <section id="server" class="server-sec">
   <div class="container">
     <div class="sec-head reveal">
-      <div class="sec-kicker" style="color:#cfcfcf">Наш сервер</div>
+      <div class="sec-kicker">Наш сервер</div>
       <h2>YxS · Сервер</h2>
       <p>Заходи, стройся, воюй. Здесь живёт комьюнити — новости, правила и важное о сервере.</p>
     </div>
@@ -611,17 +623,28 @@
       <p class="complaint-sub">Пожаловаться на нарушителя, баг или проблему. Уйдёт админам в Discord и на сайт.</p>
       <div class="complaint-form">
         <div class="field">
-          <input type="text" id="compName" placeholder="Твой ник" style="width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;padding:11px 13px">
+          <input type="text" id="compName" placeholder="Твой ник" style="width:100%;background:var(--bg2);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);padding:11px 13px">
         </div>
         <div class="field">
-          <input type="text" id="compTarget" placeholder="На кого жалоба (ник нарушителя)" style="width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;padding:11px 13px">
+          <input type="text" id="compTarget" placeholder="На кого жалоба (ник нарушителя)" style="width:100%;background:var(--bg2);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);padding:11px 13px">
         </div>
         <div class="field">
-          <textarea id="compText" rows="4" placeholder="Опиши проблему..." style="width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;padding:11px 13px;resize:vertical;font-family:inherit"></textarea>
+          <textarea id="compText" rows="4" placeholder="Опиши проблему..." style="width:100%;background:var(--bg2);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);padding:11px 13px;resize:vertical;font-family:inherit"></textarea>
         </div>
         <button class="btn btn-solid" id="compSend">Отправить жалобу</button>
         <div class="form-status" id="compStatus"></div>
       </div>
+    </div>
+
+    <!-- Player: check own complaint -->
+    <div class="my-ticket reveal" style="margin-top:34px">
+      <h3>Проверить жалобу</h3>
+      <p class="complaint-sub">Введи свой ник — увидишь свои жалобы и ответы админа.</p>
+      <div class="complaint-form">
+        <input type="text" id="checkName" placeholder="Твой ник" style="width:100%;background:var(--bg2);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);padding:11px 13px">
+        <button class="btn btn-ghost" id="checkBtn" style="align-self:flex-start">Показать</button>
+      </div>
+      <div id="myTickets" style="margin-top:16px"></div>
     </div>
 
     <!-- Admin: complaints list -->
@@ -1195,6 +1218,8 @@
       renderComplaints(data||[]);
     }catch(e){ console.error('complaints', e); }
   }
+  var STATUS_LABEL={open:'Открыта',progress:'В работе',resolved:'Решена'};
+  function statusLabel(s){ return STATUS_LABEL[s]||'Открыта'; }
   function renderComplaints(list){
     var box=document.getElementById('complaintsList');
     if(!box) return;
@@ -1206,12 +1231,51 @@
       var el=document.createElement('div');
       el.className='c-item';
       el.innerHTML=
-        '<div class="c-head"><span class="c-who">'+esc(c.name||'?')+'</span><span class="c-date">'+date+'</span></div>'+
-        (c.target?'<div class="c-on">На: '+esc(c.target)+'</div>':'')+
+        '<div class="c-head"><span class="c-who">'+esc(c.name||'?')+'</span>'+
+        '<span class="c-status st-'+esc(c.status||'open')+'">'+esc(statusLabel(c.status))+'</span>'+
+        '<span class="c-date">'+date+'</span></div>'+
+        (c.target?'<div class="c-on"><b>На:</b> '+esc(c.target)+'</div>':'')+
         '<div class="c-text">'+esc(c.text)+'</div>'+
-        '<button class="c-del" onclick="deleteComplaint(\''+c.id+'\')">✕</button>';
+        (c.reply?'<div class="c-reply"><b>Ответ:</b> '+esc(c.reply)+'</div>':'')+
+        '<div class="c-admin">'+
+          '<select data-status="'+c.id+'">'+
+            '<option value="open"'+((c.status||'open')==='open'?' selected':'')+'>Открыта</option>'+
+            '<option value="progress"'+((c.status||'open')==='progress'?' selected':'')+'>В работе</option>'+
+            '<option value="resolved"'+((c.status||'open')==='resolved'?' selected':'')+'>Решена</option>'+
+          '</select>'+
+          '<input type="text" data-reply="'+c.id+'" value="'+esc(c.reply||'')+'" placeholder="Ответ игроку...">'+
+          '<button class="c-submit" data-save="'+c.id+'">Сохранить</button>'+
+          '<button class="c-del" onclick="deleteComplaint(\''+c.id+'\')">✕</button>'+
+        '</div>';
       box.appendChild(el);
     });
+    // bind save
+    box.querySelectorAll('[data-save]').forEach(function(b){
+      b.addEventListener('click',async function(){
+        var cid=b.dataset.save;
+        var sel=box.querySelector('[data-status="'+cid+'"]');
+        var inp=box.querySelector('[data-reply="'+cid+'"]');
+        var status=sel?sel.value:'open';
+        var reply=inp?inp.value.trim():'';
+        try{
+          var {error}=await supabase.from('complaints').update({status:status,reply:reply}).match({id:cid});
+          if(error){ alert(error.message); return; }
+          loadComplaints();
+        }catch(e){ alert('Ошибка: '+e.message); }
+      });
+    });
+  }
+  function ticketHtml(c){
+    var d=new Date(c.created_at);
+    var date=d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    return '<div class="c-item">'+
+      '<div class="c-head"><span class="c-who">'+esc(c.name||'?')+'</span>'+
+      '<span class="c-status st-'+esc(c.status||'open')+'">'+esc(statusLabel(c.status))+'</span>'+
+      '<span class="c-date">'+date+'</span></div>'+
+      (c.target?'<div class="c-on"><b>На:</b> '+esc(c.target)+'</div>':'')+
+      '<div class="c-text">'+esc(c.text)+'</div>'+
+      (c.reply?'<div class="c-reply"><b>Ответ админа:</b> '+esc(c.reply)+'</div>':'')+
+      '</div>';
   }
   window.deleteComplaint=async function(id){
     if(!isOwner||!supabase) return;
@@ -1234,7 +1298,7 @@
     }catch(e){}
     // 2) в Supabase
     try{
-      var {data,error}=await supabase.from('complaints').insert({name:name,target:target,text:text});
+      var {data,error}=await supabase.from('complaints').insert({name:name,target:target,text:text,status:'open',reply:''});
       if(error) throw error;
       setCompStatus('Жалоба отправлена','ok');
       document.getElementById('compName').value='';
@@ -1251,6 +1315,20 @@
     if(adminComplaints) adminComplaints.style.display=isOwner?'block':'none';
     if(isOwner) loadComplaints();
   }
+
+  // player checks own tickets by nick
+  document.getElementById('checkBtn').addEventListener('click',async function(){
+    var name=document.getElementById('checkName').value.trim();
+    var box=document.getElementById('myTickets');
+    if(!name){ box.innerHTML='<p class="form-status err">Введи ник</p>'; return; }
+    if(!supabase){ box.innerHTML='<p class="form-status err">База недоступна</p>'; return; }
+    try{
+      var {data,error}=await supabase.from('complaints').select('*').eq('name',name).order('created_at',{ascending:false});
+      if(error) throw error;
+      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Жалоб на этот ник не найдено.</p>'; return; }
+      box.innerHTML=data.map(ticketHtml).join('');
+    }catch(e){ box.innerHTML='<p class="form-status err">Ошибка: '+esc(e.message)+'</p>'; }
+  });
 
   // ============ Init ============
   updateMemberButtons();
