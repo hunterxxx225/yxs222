@@ -581,6 +581,9 @@
     opacity:0}
   .click-flash.active{animation:flash .35s ease-out forwards}
   @keyframes flash{0%{opacity:1}100%{opacity:0}}
+
+  /* ===== Rust snowflake particles canvas ===== */
+  #flakeCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:.85}
 </style>
 </head>
 <body>
@@ -846,6 +849,8 @@
   </div>
 </footer>
 
+<canvas id="flakeCanvas"></canvas>
+
 <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
   // ============ Custom cursor ============
@@ -893,6 +898,94 @@
       clickFlash.classList.add('active');
     }
   });
+  // ============ Rust snowflake particles ============
+  var flakeCv=document.getElementById('flakeCanvas');
+  var fc=flakeCv?flakeCv.getContext('2d'):null;
+  var flakes=[], W=0, H=0, FL_KEY='yxs_flakes';
+  var snowOn=true;
+  try{ snowOn=(localStorage.getItem(FL_KEY)!=='0'); }catch(e){}
+  function resizeFlakes(){ W=window.innerWidth; H=window.innerHeight; if(flakeCv){ flakeCv.width=W; flakeCv.height=H; } }
+  resizeFlakes();
+  window.addEventListener('resize',resizeFlakes);
+  function makeFlake(burst){
+    var size=(burst?3:5)+Math.random()*6;
+    return {
+      x: burst? (W/2 + (Math.random()-0.5)*40) : Math.random()*W,
+      y: burst? (H/2 + (Math.random()-0.5)*40) : Math.random()*H,
+      r: size, rot:Math.random()*Math.PI, vr:(Math.random()-0.5)*0.06,
+      vy:0.2+Math.random()*0.5, vx:(Math.random()-0.5)*0.3,
+      vx0:(burst?(Math.random()-0.5)*14:(Math.random()-0.5)*0.3),
+      vy0:(burst? (Math.random()-0.5)*14 : 0.2+Math.random()*0.5),
+      alpha:0.25+Math.random()*0.5,
+      life:1, burst:burst||false, drift:Math.sin(Math.random()*6.28)
+    };
+  }
+  function initFlakes(n){
+    n=n||40;
+    for(var i=0;i<n;i++){ flakes.push(makeFlake(false)); }
+  }
+  function drawFlake(p){
+    if(p.life<=0) return;
+    fc.save();
+    fc.globalAlpha=p.alpha*p.life;
+    fc.translate(p.x,p.y);
+    fc.rotate(p.rot);
+    fc.strokeStyle='#ff5a5a';
+    fc.lineWidth=1.2;
+    // крестик-прицел как у раста
+    var L=p.r;
+    fc.beginPath();
+    fc.moveTo(0,-L);fc.lineTo(0,L);
+    fc.moveTo(-L,0);fc.lineTo(L,0);
+    fc.moveTo(-L*0.6,-L*0.6);fc.lineTo(L*0.6,L*0.6);
+    fc.moveTo(L*0.6,-L*0.6);fc.lineTo(-L*0.6,L*0.6);
+    fc.stroke();
+    // маленькая точка в центре
+    fc.beginPath();
+    fc.arc(0,0,L*0.15,0,Math.PI*2);
+    fc.fillStyle='#ff7a1a';
+    fc.fill();
+    fc.restore();
+  }
+  function updateFlakes(){
+    for(var i=flakes.length-1;i>=0;i--){
+      var p=flakes[i];
+      if(p.burst){
+        p.x+=p.vx0; p.y+=p.vy0;
+        p.vx0*=0.96; p.vy0*=0.96;
+        p.rot+=p.vr*2;
+        p.life-=0.02;
+        if(p.life<=0){ flakes.splice(i,1); continue; }
+      }else{
+        p.y+=p.vy; p.x+=p.vx+Math.sin(Date.now()*0.001+p.drift)*0.3;
+        p.rot+=p.vr;
+        if(p.y>H+20){ p.y=-20; p.x=Math.random()*W; }
+        if(p.x>W+20) p.x=-20;
+        if(p.x<-20) p.x=W+20;
+      }
+      drawFlake(p);
+    }
+  }
+  function flakeLoop(){
+    if(fc){ fc.clearRect(0,0,W,H); updateFlakes(); }
+    requestAnimationFrame(flakeLoop);
+  }
+  // burst on click
+  document.addEventListener('mousedown',function(e){
+    if(!snowOn) return;
+    // временно двигаем "центр взрыва"
+    var burstX=e.clientX, burstY=e.clientY;
+    for(var i=0;i<10;i++){
+      var p=makeFlake(true);
+      p.x=burstX+(Math.random()-0.5)*30;
+      p.y=burstY+(Math.random()-0.5)*30;
+      var a=Math.random()*Math.PI*2, sp=2+Math.random()*6;
+      p.vx0=Math.cos(a)*sp; p.vy0=Math.sin(a)*sp;
+      flakes.push(p);
+    }
+  });
+  if(snowOn) initFlakes(40);
+  if(snowOn && fc) flakeLoop();
   // ============ Supabase config ============
   var SUPABASE_URL='https://zljadqzgyfqyhojyuuii.supabase.co';
   var SUPABASE_KEY='sb_publishable_HrPdrb92ppWGN-Qveq7q3Q_Y3MZIS9l';
