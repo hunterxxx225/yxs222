@@ -141,6 +141,14 @@
   .sec-head h2{font-size:clamp(1.9rem,4.2vw,2.9rem);font-weight:900;margin-top:16px;text-transform:uppercase;letter-spacing:.01em}
   .sec-head p{color:var(--muted);margin-top:14px;font-size:1.05rem}
 
+  /* клан: та же сетка и плотность, что на странице сервера, но в красном */
+  #about,#recruit,#members,#progress{padding:76px 0}
+  .clan-facts{padding:0 0 12px}
+  .clan-facts .server-info{margin-bottom:0}
+  .clan-view .card,.clan-view .member{border-color:rgba(255,60,60,.12)}
+  .clan-view .card:hover,.clan-view .member:hover{border-color:var(--line)}
+  .cards,.clan-view .members{gap:16px}
+
   /* cards (about) */
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px}
   .card{background:linear-gradient(180deg,var(--panel),var(--bg2));
@@ -759,6 +767,17 @@
   <div class="fade-bottom"></div>
 </section>
 
+<section class="clan-facts">
+  <div class="container">
+    <div class="server-info reveal">
+      <div class="s-card"><div class="s-label">Клан</div><div class="s-val">[YxS]</div></div>
+      <div class="s-card"><div class="s-label">Состав</div><div class="s-val" id="clanCount">—</div></div>
+      <div class="s-card"><div class="s-label">Сервер</div><div class="s-val">Rust · 2x</div></div>
+      <div class="s-card"><div class="s-label">Discord</div><div class="s-val">discord.gg/yxs</div></div>
+    </div>
+  </div>
+</section>
+
 <section id="about">
   <div class="container">
     <div class="sec-head reveal">
@@ -1012,7 +1031,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.10 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.11 · админ</span>
   </div>
 </footer>
 
@@ -1489,6 +1508,8 @@
 
   async function renderMembers(){
     var list=await loadMembers();
+    var cntEl=document.getElementById('clanCount');
+    if(cntEl) cntEl.textContent=list.length;
     memberListEl.innerHTML='';
     list.forEach(function(m,i){
       var el=document.createElement('div');
