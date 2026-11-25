@@ -2296,7 +2296,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
       '<h4>Заказы</h4><div id="shopOrders"><p style="color:var(--muted)">Заказов нет.</p></div>'+
       '<h4>Промокоды</h4><div class="admin-grid">'+
         '<input type="text" id="promoCode" placeholder="КОД">'+
-        '<select id="promoKind"><option value="percent">% скидка</option><option value="fixed">₽ скидка</option></select>'+
+        '<select id="promoKind"><option value="percent">% скидка</option><option value="fixed">₽ скидка</option><option value="bonus">+₽ на баланс (в игре)</option></select>'+
         '<input type="number" id="promoValue" placeholder="Значение" min="1" step="0.01">'+
         '<input type="number" id="promoUses" placeholder="Активаций (∞)" min="1">'+
         '<input type="number" id="promoMin" placeholder="Мин. сумма, ₽" min="0">'+
@@ -2379,7 +2379,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
       if(error) throw error;
       if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Промокодов нет.</p>'; return; }
       box.innerHTML=data.map(function(p){
-        var val=p.kind==='percent'?p.value+'%':shopMoney(p.value);
+        var val=p.kind==='percent'?p.value+'%':(p.kind==='bonus'?'+'+shopMoney(p.value):shopMoney(p.value));
         return '<div class="promo-item"><span><b>'+esc(p.code)+'</b> · '+val+
           (p.uses_left==null?' · ∞':' · осталось '+p.uses_left)+
           (Number(p.min_total)>0?' · от '+shopMoney(p.min_total):'')+
