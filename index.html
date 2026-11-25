@@ -420,9 +420,9 @@
   .shop-card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px;
     display:flex;flex-direction:column;gap:8px;transition:.25s}
   .shop-card:hover{transform:translateY(-3px);box-shadow:0 16px 36px -22px var(--glow)}
-  .shop-thumb{height:92px;border-radius:10px;background:rgba(255,255,255,.045);display:flex;align-items:center;
-    justify-content:center;overflow:hidden}
-  .shop-thumb img{width:100%;height:100%;object-fit:contain}
+  .shop-thumb{height:104px;border-radius:12px;background:radial-gradient(ellipse at 50% 35%,rgba(255,255,255,.07),rgba(255,255,255,.02) 70%);
+    display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+  .shop-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:10px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.55))}
   .shop-thumb .ph{font-size:1.5rem;font-weight:900;letter-spacing:.08em;color:var(--muted)}
   .shop-name{font-weight:700;font-size:.95rem;color:var(--text);line-height:1.3}
   .shop-meta{font-size:.74rem;color:var(--muted)}
@@ -1001,7 +1001,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.5 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.6 · админ</span>
   </div>
 </footer>
 
@@ -2128,6 +2128,13 @@ swClan.addEventListener('click',function(){ setView('clan'); });
     return {sum:Math.round(sum*100)/100, cnt:cnt, disc:disc, total:Math.max(0,Math.round((sum-disc)*100)/100)};
   }
 
+  function shopIconUrl(it){
+    if(it.img) return it.img;
+    var sn=String(it.shortname||'');
+    if(!sn||sn.indexOf('cmd:')===0) return '';
+    return 'https://rustlabs.com/img/items180/'+encodeURIComponent(sn)+'.png';
+  }
+
   async function loadShopItems(){
     if(!supabase||!shopGrid) return;
     try{
@@ -2149,8 +2156,9 @@ swClan.addEventListener('click',function(){ setView('clan'); });
       return;
     }
     shopGrid.innerHTML=shopItems.map(function(it){
-      var thumb=it.img ? '<img src="'+esc(it.img)+'" alt="" loading="lazy">'
-                       : '<span class="ph">'+esc(String(it.name||'?').slice(0,1).toUpperCase())+'</span>';
+      var icon=shopIconUrl(it);
+      var thumb='<span class="ph">'+esc(String(it.name||'?').slice(0,1).toUpperCase())+'</span>'+
+                (icon?'<img src="'+esc(icon)+'" alt="" loading="lazy" onerror="this.remove()">':'');
       return '<div class="shop-card">'+
         '<div class="shop-thumb">'+thumb+'</div>'+
         '<div class="shop-name">'+esc(it.name)+'</div>'+
@@ -2529,6 +2537,11 @@ swClan.addEventListener('click',function(){ setView('clan'); });
       box.innerHTML=data.map(function(it){
         return '<div class="item-row"><span>'+esc(it.name)+' · '+esc(it.shortname)+' ×'+it.amount+
           ' · '+shopMoney(it.price)+(it.active?'':' · скрыт')+'</span><span>'+
+          '<input type="text" class="icon-inp" data-id="'+it.id+'" value="'+esc(it.img||'')+'" '+
+            'placeholder="URL иконки (пусто = авто)" '+
+            'style="width:150px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;'+
+            'color:var(--text);padding:5px 8px;font-size:.72rem">'+
+          '<button class="shop-mini" onclick="shopSaveIcon('+it.id+')">иконка</button>'+
           '<button class="shop-mini" onclick="shopToggleItem('+it.id+','+(!it.active)+')">'+(it.active?'скрыть':'показать')+'</button>'+
           '<button class="shop-mini danger" onclick="shopDelItem('+it.id+')">✕</button>'+
         '</span></div>';
@@ -2578,6 +2591,16 @@ swClan.addEventListener('click',function(){ setView('clan'); });
     if(error){ alert(error.message); return; }
     loadAdminItems(); loadShopItems();
   };
+  window.shopSaveIcon=async function(id){
+    if(!isOwner||!supabase) return;
+    var inp=document.querySelector('.icon-inp[data-id="'+id+'"]');
+    var url=inp?(inp.value||'').trim():'';
+    var {error}=await supabase.from('shop_items').update({img:url}).match({id:id});
+    if(error){ alert(error.message); return; }
+    showToast(url?'Иконка сохранена':'Иконка сброшена на стандартную');
+    loadAdminItems(); loadShopItems();
+  };
+
   window.shopToggleItem=async function(id,on){
     if(!isOwner||!supabase) return;
     var {error}=await supabase.from('shop_items').update({active:!!on}).match({id:id});
