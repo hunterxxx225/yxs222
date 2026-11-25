@@ -1297,15 +1297,25 @@
     }catch(e){ return defaultMembers; }
   }
   async function saveMembers(list){
-    if(!supabase) return;
+    if(!supabase) return {ok:false,error:'Нет соединения с базой'};
     try{
-      if(list&&list.length){ await supabase.from('members').delete().neq('pos','-1'); }
+      // сначала запоминаем старые записи, чтобы не потерять их при ошибке
+      var oldRes=await supabase.from('members').select('id');
+      var oldIds=(oldRes.data||[]).map(function(r){ return r.id; });
+      var insertedIds=[];
       for(var i=0;i<list.length;i++){
-        var {error}=await supabase.from('members').insert({pos:i, name:list[i].name, role:list[i].role, info:list[i].info, ava:list[i].ava||''});
-        if(error){ console.error(error); return false; }
+        var res=await supabase.from('members').insert({pos:i, name:list[i].name, role:list[i].role, info:list[i].info, ava:list[i].ava||''}).select('id');
+        if(res.error){
+          // откат: убираем частично вставленные
+          if(insertedIds.length){ await supabase.from('members').delete().in('id',insertedIds); }
+          return {ok:false, error:res.error.message};
+        }
+        if(res.data && res.data[0]) insertedIds.push(res.data[0].id);
       }
-      return true;
-    }catch(e){ console.error(e); return false; }
+      // теперь удаляем прежние записи
+      if(oldIds.length){ await supabase.from('members').delete().in('id',oldIds); }
+      return {ok:true};
+    }catch(e){ return {ok:false,error:e.message}; }
   }
 
   async function renderMembers(){
@@ -1413,9 +1423,9 @@
   });
   document.getElementById('editMembersSave').addEventListener('click',async function(){
     var clean=editDraft.map(function(m){ return {name:m.name,role:m.role,info:m.info||'',ava:m._ava||''}; });
-    var ok=await saveMembers(clean);
-    if(ok){ editMembersModal.classList.remove('open'); renderMembers(); }
-    else alert('Не удалось сохранить состав');
+    var res=await saveMembers(clean);
+    if(res && res.ok){ editMembersModal.classList.remove('open'); renderMembers(); }
+    else alert('Не удалось сохранить состав: '+((res&&res.error)||'неизвестная ошибка'));
   });
   document.getElementById('editMembersClose').addEventListener('click',function(){
     editMembersModal.classList.remove('open');
