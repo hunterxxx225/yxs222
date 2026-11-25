@@ -1007,7 +1007,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.7 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.8 · админ</span>
   </div>
 </footer>
 
@@ -2134,11 +2134,14 @@ swClan.addEventListener('click',function(){ setView('clan'); });
     return {sum:Math.round(sum*100)/100, cnt:cnt, disc:disc, total:Math.max(0,Math.round((sum-disc)*100)/100)};
   }
 
+  var SHOP_ICON_ALIAS={stone:'stones'};
+
   function shopIconUrl(it){
     if(it.img) return it.img;
     var sn=String(it.shortname||'');
     if(!sn||sn.indexOf('cmd:')===0) return '';
-    return 'https://rustlabs.com/img/items180/'+encodeURIComponent(sn)+'.png';
+    var slug=SHOP_ICON_ALIAS[sn]||sn;
+    return 'https://rustlabs.com/img/items180/'+encodeURIComponent(slug)+'.png';
   }
 
   async function loadShopItems(){
