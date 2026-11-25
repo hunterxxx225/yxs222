@@ -215,6 +215,9 @@
   .s-card{background:var(--panel);border:1px solid rgba(255,60,60,.12);border-radius:14px;padding:20px 18px;text-align:center;transition:.3s}
   .s-card:hover{border-color:var(--line);transform:translateY(-3px);box-shadow:0 14px 34px -18px var(--glow)}
   .s-card .s-label{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .srv-updated{text-align:center;color:var(--muted);font-size:.78rem;margin:-30px 0 40px;letter-spacing:.04em}
+  #srvStatus.online{color:#5fdb7a}
+  #srvStatus.offline{color:#ff5a5a}
   .s-card .s-val{font-size:1.1rem;font-weight:700;color:var(--text)}
   .s-card.s-ip{grid-column:1/-1}
   .s-card.s-ip .s-val{color:var(--text);letter-spacing:.04em}
@@ -793,11 +796,12 @@
 
     <div class="server-info reveal">
       <div class="s-card"><div class="s-label">Тип</div><div class="s-val">Vanilla / PvP</div></div>
-      <div class="s-card"><div class="s-label">Карта</div><div class="s-val">Hapis · 4K</div></div>
-      <div class="s-card"><div class="s-label">Вайп</div><div class="s-val">Кажд. четверг</div></div>
-      <div class="s-card"><div class="s-label">Онлайн</div><div class="s-val">~80+</div></div>
-      <div class="s-card s-ip"><div class="s-label">Подключение</div><div class="s-val">IP: yxs.clan-server.ru</div></div>
+      <div class="s-card"><div class="s-label">Карта</div><div class="s-val" id="srvMap">—</div></div>
+      <div class="s-card"><div class="s-label">Статус</div><div class="s-val" id="srvStatus">—</div></div>
+      <div class="s-card"><div class="s-label">Онлайн</div><div class="s-val" id="srvOnline">—</div></div>
+      <div class="s-card s-ip"><div class="s-label">Подключение</div><div class="s-val">157.85.87.153:26019</div></div>
     </div>
+    <div class="srv-updated" id="srvUpdated"></div>
 
     <div class="server-news-head reveal">
       <h3>Новости сервера</h3>
@@ -1839,6 +1843,36 @@ swClan.addEventListener('click',function(){ setView('clan'); });
     var pct = h.scrollTop/(h.scrollHeight-h.clientHeight);
     document.body.style.setProperty('--sp', (pct*100)+'%');
   },{passive:true});
+
+  // ============ Server live stats ============
+  async function loadServerStats(){
+    if(!supabase) return;
+    try{
+      var res=await supabase.from('server_stats').select('*').eq('id','main').limit(1);
+      var row=res.data && res.data[0] ? res.data[0] : null;
+      var elOn=document.getElementById('srvOnline');
+      var elSt=document.getElementById('srvStatus');
+      var elMap=document.getElementById('srvMap');
+      var elUp=document.getElementById('srvUpdated');
+      if(!elOn) return;
+      if(!row){
+        elOn.textContent='—';
+        elSt.textContent='Нет данных'; elSt.className='s-val';
+        if(elUp) elUp.textContent='Плагин ещё не присылал статистику';
+        return;
+      }
+      var upd=new Date(row.updated_at);
+      var ageMin=(Date.now()-upd.getTime())/60000;
+      var live=ageMin < 3;
+      elOn.textContent=(row.players!=null?row.players:0)+' / '+(row.max_players!=null?row.max_players:0);
+      elSt.textContent=live?'Онлайн':'Офлайн';
+      elSt.className='s-val '+(live?'online':'offline');
+      if(row.map && elMap) elMap.textContent=row.map;
+      if(elUp) elUp.textContent='Обновлено: '+upd.toLocaleTimeString('ru-RU')+(live?'':' · сервер не отвечает');
+    }catch(e){ /* таблицы может не быть */ }
+  }
+  loadServerStats();
+  setInterval(loadServerStats, 20000);
 
   // ============ Init ============
   updateMemberButtons();
