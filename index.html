@@ -603,6 +603,13 @@
   .view.server-view .thread-form button{background:#e8e8e8;color:#0a0a0b}
   /* status select emphasis */
   .c-admin select{font-weight:700;letter-spacing:.03em;cursor:pointer}
+
+  /* toast */
+  #toastMsg{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);z-index:9998;
+    background:rgba(20,20,24,.95);border:1px solid rgba(255,60,60,.35);color:#fff;
+    padding:12px 20px;border-radius:12px;font-size:.9rem;font-weight:600;opacity:0;pointer-events:none;
+    transition:opacity .3s,transform .3s;backdrop-filter:blur(10px);max-width:90vw;text-align:center}
+  #toastMsg.show{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -1167,6 +1174,7 @@
       updateOwnerUI();
       render();
       loadPosts();
+      if(typeof applyPendingStatus==='function') applyPendingStatus();
     }catch(e){
       errEl.textContent='Неверный email или пароль';
     }
@@ -1714,6 +1722,46 @@ swClan.addEventListener('click',function(){ setView('clan'); });
       loadComplaints();
     }catch(e){ alert('Ошибка: '+e.message); }
   };
+
+  // ---- смена статуса по кнопке из Discord ----
+  function showToast(msg){
+    var t=document.getElementById('toastMsg');
+    if(!t){ t=document.createElement('div'); t.id='toastMsg'; document.body.appendChild(t); }
+    t.textContent=msg; t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 3000);
+  }
+  async function applyTicketStatusFromUrl(){
+    var params=new URLSearchParams(location.search);
+    var tid=params.get('ticket'), st=params.get('status');
+    if(!tid||!st) return;
+    if(!isOwner){
+      try{ localStorage.setItem('yxs_pending_status', JSON.stringify({ticket:tid,status:st})); }catch(e){}
+      showToast('Войди как админ — статус применится автоматически');
+      return;
+    }
+    if(!supabase) return;
+    try{
+      var {error}=await supabase.from('complaints').update({status:st}).match({id:tid});
+      if(error){ showToast('Ошибка: '+error.message); return; }
+      try{ localStorage.removeItem('yxs_pending_status'); }catch(e){}
+      var u=new URL(location.href); u.searchParams.delete('status'); u.searchParams.delete('ticket');
+      history.replaceState(null,'',u.pathname+u.search+u.hash);
+      showToast('Статус обновлён: '+statusLabel(st));
+      loadComplaints();
+    }catch(e){ showToast('Ошибка: '+e.message); }
+  }
+  async function applyPendingStatus(){
+    if(!isOwner) return;
+    var raw=null; try{ raw=localStorage.getItem('yxs_pending_status'); }catch(e){}
+    if(!raw) return applyTicketStatusFromUrl();
+    try{
+      var p=JSON.parse(raw);
+      if(p&&p.ticket&&p.status){
+        var {error}=await supabase.from('complaints').update({status:p.status}).match({id:p.ticket});
+        if(!error){ localStorage.removeItem('yxs_pending_status'); showToast('Статус обновлён: '+statusLabel(p.status)); loadComplaints(); }
+      }
+    }catch(e){}
+  }
   document.getElementById('compSend').addEventListener('click',async function(){
     var name=document.getElementById('compName').value.trim();
     var target=document.getElementById('compTarget').value.trim();
@@ -1726,11 +1774,18 @@ swClan.addEventListener('click',function(){ setView('clan'); });
       var {data,error}=await supabase.from('complaints').insert({name:name,target:target,text:text,status:'open',reply:''}).select('id');
       if(error) throw error;
       var cid=data && data[0] ? data[0].id : '';
-      // 2) в Discord со ссылкой на жалобу на сайте
+      // 2) в Discord со ссылкой и кнопками статуса
       try{
-        var link='https://hunterxxx225.github.io/yxs222/?ticket='+encodeURIComponent(cid)+'#server';
+        var base='https://hunterxxx225.github.io/yxs222/?ticket='+encodeURIComponent(cid);
         await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({content:'**Новая жалоба**\n**От:** '+name+'\n**На:** '+(target||'—')+'\n\n'+text+'\n\nОткрыть на сайте: '+link})});
+          body:JSON.stringify({
+            content:'**Новая жалоба**\n**От:** '+name+'\n**На:** '+(target||'—')+'\n\n'+text,
+            components:[{type:1,components:[
+              {type:2,style:5,label:'Открыть',url:base+'#server'},
+              {type:2,style:5,label:'В работе',url:base+'&status=progress#server'},
+              {type:2,style:5,label:'Решена',url:base+'&status=resolved#server'}
+            ]}]
+          })});
       }catch(e){}
       setCompStatus('Жалоба отправлена','ok');
       document.getElementById('compName').value='';
@@ -1794,6 +1849,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
   updateServerNewsUI();
   updateComplaintsUI();
   if(TICKET_LINK){ setView('server'); }
+  if(typeof applyTicketStatusFromUrl==='function'){ setTimeout(applyTicketStatusFromUrl, 800); }
 </script>
 
 </body>
