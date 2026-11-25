@@ -403,6 +403,64 @@
   .view.server-view .form-status.err{color:#ff9a9a}
   .view.server-view .s-card:hover{box-shadow:0 14px 34px -18px rgba(0,0,0,.6)}
 
+  /* ============ Магазин ============ */
+  .shop-sec{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:30px;margin-top:34px}
+  .shop-sec h3{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:4px}
+  .shop-sub{color:var(--muted);font-size:.9rem;margin-bottom:18px}
+  .shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+  .shop-card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px;
+    display:flex;flex-direction:column;gap:8px;transition:.25s}
+  .shop-card:hover{transform:translateY(-3px);box-shadow:0 16px 36px -22px var(--glow)}
+  .shop-thumb{height:92px;border-radius:10px;background:rgba(255,255,255,.045);display:flex;align-items:center;
+    justify-content:center;overflow:hidden}
+  .shop-thumb img{width:100%;height:100%;object-fit:contain}
+  .shop-thumb .ph{font-size:1.5rem;font-weight:900;letter-spacing:.08em;color:var(--muted)}
+  .shop-name{font-weight:700;font-size:.95rem;color:var(--text);line-height:1.3}
+  .shop-meta{font-size:.74rem;color:var(--muted)}
+  .shop-price{font-weight:900;font-size:1.02rem;color:var(--text)}
+  .shop-buy{margin-top:auto;padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:transparent;
+    color:var(--text);font-weight:700;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:.2s}
+  .shop-buy:hover{background:var(--text);color:var(--bg)}
+  .shop-cartbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    margin-top:18px;padding:13px 18px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);
+    position:sticky;bottom:14px;z-index:6;box-shadow:0 18px 40px -24px #000}
+  .cart-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+  .cart-row .cr-name{flex:1;font-size:.9rem;color:var(--text)}
+  .cart-row .cr-qty{display:flex;align-items:center;gap:8px}
+  .cart-row .cr-qty button{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:transparent;
+    color:var(--text);cursor:pointer;font-weight:700;line-height:1}
+  .cart-row .cr-sum{min-width:72px;text-align:right;font-weight:700;font-size:.9rem;color:var(--text)}
+  .cart-row .cr-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem}
+  .promo-row{display:flex;gap:8px;margin-top:14px}
+  .promo-row input{margin-bottom:0;flex:1}
+  .cart-totals{margin-top:14px;font-size:.88rem;color:var(--muted);display:flex;flex-direction:column;gap:5px}
+  .cart-totals b{color:var(--text)}
+  .cart-totals .ct-total{font-size:1.05rem;color:var(--text);font-weight:800}
+  .modal-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .shop-admin{display:none;margin-top:26px;padding-top:20px;border-top:1px solid var(--line)}
+  .shop-admin h4{font-size:.8rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:20px 0 10px}
+  .shop-admin h4:first-child{margin-top:0}
+  .admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;align-items:center}
+  .admin-grid input,.admin-grid select{background:var(--bg2);border:1px solid var(--line);border-radius:9px;
+    color:var(--text);padding:9px 10px;font-size:.85rem;font-family:inherit}
+  .admin-grid input:focus,.admin-grid select:focus{outline:none;border-color:var(--muted)}
+  .order-item{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+  .order-item .o-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:4px}
+  .order-item .o-who{font-weight:700;font-size:.88rem;color:var(--text)}
+  .order-item .o-meta{font-size:.76rem;color:var(--muted)}
+  .order-item .o-items{font-size:.84rem;color:var(--text);margin-top:6px;word-break:break-word}
+  .order-item .o-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+  .order-item .o-actions button{padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:transparent;
+    color:var(--text);font-size:.72rem;font-weight:700;cursor:pointer;transition:.2s}
+  .order-item .o-actions button:hover{background:var(--text);color:var(--bg)}
+  .order-item .o-actions button.danger:hover{background:var(--red);color:var(--bg)}
+  .promo-item,.item-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;
+    border-bottom:1px solid rgba(255,255,255,.06);font-size:.84rem;color:var(--text)}
+  .shop-mini{padding:5px 10px;margin-left:6px;border-radius:7px;border:1px solid var(--line);background:transparent;
+    color:var(--text);font-size:.72rem;font-weight:700;cursor:pointer;transition:.2s}
+  .shop-mini:hover{background:var(--text);color:var(--bg)}
+  .shop-mini.danger:hover{background:var(--red);color:var(--bg)}
+
   /* complaint */
   .complaint-sec{background:var(--panel);border:1px solid rgba(255,60,60,.1);border-radius:16px;padding:30px;margin-top:34px}
   .complaint-sec h3{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:4px}
@@ -838,6 +896,36 @@
     </div>
     <div class="s-news" id="serverNewsList"><p style="color:var(--muted)">Новостей пока нет.</p></div>
 
+    <!-- Shop -->
+    <div class="shop-sec reveal">
+      <h3>Магазин</h3>
+      <p class="shop-sub">Покупаешь — забираешь в игре. Войди через Steam, чтобы мы знали, кому выдавать. Выдача в течение минуты после подтверждения оплаты.</p>
+      <div class="shop-grid" id="shopGrid"><p style="color:var(--muted)">Загружаем товары...</p></div>
+      <div class="shop-cartbar" id="shopCartBar" style="display:none">
+        <div>В корзине: <b id="cartCount">0</b> · <b id="cartSum">0 ₽</b></div>
+        <button class="btn btn-solid" id="cartOpen" style="padding:10px 20px;font-size:.8rem">Корзина</button>
+      </div>
+      <div class="shop-admin" id="shopAdmin"></div>
+    </div>
+
+    <!-- cart modal -->
+    <div class="modal" id="cartModal">
+      <div class="modal-card" style="max-width:540px;max-height:88vh;overflow-y:auto">
+        <h3>Корзина</h3>
+        <div id="cartList"></div>
+        <div class="promo-row">
+          <input type="text" id="promoInput" placeholder="Промокод">
+          <button class="btn btn-ghost" id="promoApply" style="padding:0 16px;font-size:.78rem">ОК</button>
+        </div>
+        <div class="cart-totals" id="cartTotals"></div>
+        <div class="modal-actions">
+          <button class="btn btn-solid" id="cartCheckout" style="padding:11px 20px;font-size:.8rem">Оформить заказ</button>
+          <button class="btn btn-ghost" id="cartClose" style="padding:11px 20px;font-size:.8rem">Закрыть</button>
+        </div>
+        <div class="form-status" id="cartStatus"></div>
+      </div>
+    </div>
+
     <div class="server-rules reveal">
       <h3>Правила сервера</h3>
       <ul>
@@ -894,7 +982,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.1 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.2 · админ</span>
   </div>
 </footer>
 
@@ -1172,6 +1260,7 @@
     if(typeof updateMemberButtons==='function'){ updateMemberButtons(); }
     if(typeof updateServerNewsUI==='function'){ updateServerNewsUI(); }
     if(typeof updateComplaintsUI==='function'){ updateComplaintsUI(); }
+    if(typeof loadShopAdmin==='function'){ loadShopAdmin(); }
   }
   document.getElementById('adminTrigger').addEventListener('click',function(){
     if(isOwner){ ownerForm.classList.toggle('open'); return; }
@@ -1979,6 +2068,414 @@ swClan.addEventListener('click',function(){ setView('clan'); });
     renderSteam();
   }
 
+  // ============ Магазин ============
+  var shopGrid=document.getElementById('shopGrid');
+  var shopAdmin=document.getElementById('shopAdmin');
+  var cartModal=document.getElementById('cartModal');
+  var shopItems=[];
+  var shopCart={};
+  var shopPromo=null;
+  try{ shopCart=JSON.parse(localStorage.getItem('yxs_cart')||'{}')||{}; }catch(e){ shopCart={}; }
+
+  function shopMoney(n){
+    var v=Math.round(Number(n||0)*100)/100;
+    return v.toLocaleString('ru-RU',{maximumFractionDigits:2})+' ₽';
+  }
+  function cartSave(){ try{ localStorage.setItem('yxs_cart', JSON.stringify(shopCart)); }catch(e){} }
+  function cartLines(){
+    var out=[];
+    Object.keys(shopCart).forEach(function(id){
+      var qty=Number(shopCart[id])||0;
+      if(qty<=0) return;
+      var it=null;
+      for(var i=0;i<shopItems.length;i++){ if(String(shopItems[i].id)===String(id)){ it=shopItems[i]; break; } }
+      if(it) out.push({it:it, qty:qty});
+    });
+    return out;
+  }
+  function cartStats(){
+    var sum=0, cnt=0;
+    cartLines().forEach(function(l){ sum+=Number(l.it.price)*l.qty; cnt+=l.qty; });
+    var disc=0;
+    if(shopPromo){
+      if(shopPromo.kind==='percent') disc=sum*Number(shopPromo.value)/100;
+      else disc=Math.min(Number(shopPromo.value), sum);
+    }
+    disc=Math.round(disc*100)/100;
+    return {sum:Math.round(sum*100)/100, cnt:cnt, disc:disc, total:Math.max(0,Math.round((sum-disc)*100)/100)};
+  }
+
+  async function loadShopItems(){
+    if(!supabase||!shopGrid) return;
+    try{
+      var {data,error}=await supabase.from('shop_items').select('*').eq('active',true)
+        .order('sort',{ascending:true}).order('id',{ascending:true});
+      if(error) throw error;
+      shopItems=data||[];
+      renderShop();
+    }catch(e){
+      shopGrid.innerHTML='<p style="color:var(--muted)">Магазин пока не настроен.</p>';
+    }
+  }
+
+  function renderShop(){
+    if(!shopGrid) return;
+    if(!shopItems.length){
+      shopGrid.innerHTML='<p style="color:var(--muted)">Товаров пока нет.</p>';
+      renderCartBar();
+      return;
+    }
+    shopGrid.innerHTML=shopItems.map(function(it){
+      var thumb=it.img ? '<img src="'+esc(it.img)+'" alt="" loading="lazy">'
+                       : '<span class="ph">'+esc(String(it.name||'?').slice(0,1).toUpperCase())+'</span>';
+      return '<div class="shop-card">'+
+        '<div class="shop-thumb">'+thumb+'</div>'+
+        '<div class="shop-name">'+esc(it.name)+'</div>'+
+        '<div class="shop-meta">'+esc(it.shortname)+(Number(it.amount)>1?' × '+it.amount:'')+'</div>'+
+        '<div class="shop-price">'+shopMoney(it.price)+'</div>'+
+        '<button class="shop-buy" data-buy="'+it.id+'">В корзину</button>'+
+      '</div>';
+    }).join('');
+    shopGrid.querySelectorAll('[data-buy]').forEach(function(b){
+      b.addEventListener('click',function(){ shopAdd(b.getAttribute('data-buy')); });
+    });
+    renderCartBar();
+  }
+
+  function shopAdd(id){
+    shopCart[id]=(Number(shopCart[id])||0)+1;
+    cartSave();
+    renderCartBar();
+    if(cartModal && cartModal.classList.contains('open')) renderCart();
+    showToast('Добавлено в корзину');
+  }
+
+  function renderCartBar(){
+    var bar=document.getElementById('shopCartBar');
+    if(!bar) return;
+    var s=cartStats();
+    document.getElementById('cartCount').textContent=s.cnt;
+    document.getElementById('cartSum').textContent=shopMoney(s.total);
+    bar.style.display=s.cnt?'flex':'none';
+  }
+
+  function renderCart(){
+    var box=document.getElementById('cartList');
+    var tot=document.getElementById('cartTotals');
+    if(!box) return;
+    var lines=cartLines();
+    if(!lines.length){
+      box.innerHTML='<p style="color:var(--muted);font-size:.9rem">Корзина пуста.</p>';
+      if(tot) tot.innerHTML='';
+      renderCartBar();
+      return;
+    }
+    box.innerHTML=lines.map(function(l){
+      return '<div class="cart-row">'+
+        '<span class="cr-name">'+esc(l.it.name)+'</span>'+
+        '<span class="cr-qty"><button data-dec="'+l.it.id+'">−</button><b>'+l.qty+'</b>'+
+          '<button data-inc="'+l.it.id+'">+</button></span>'+
+        '<span class="cr-sum">'+shopMoney(Number(l.it.price)*l.qty)+'</span>'+
+        '<button class="cr-del" data-del="'+l.it.id+'">✕</button>'+
+      '</div>';
+    }).join('');
+    var s=cartStats();
+    var h='<div>Товары: <b>'+shopMoney(s.sum)+'</b></div>';
+    if(s.disc>0) h+='<div>Промокод '+esc(shopPromo.code)+': −<b>'+shopMoney(s.disc)+'</b></div>';
+    h+='<div class="ct-total">К оплате: '+shopMoney(s.total)+'</div>';
+    if(tot) tot.innerHTML=h;
+    renderCartBar();
+  }
+
+  var cartListEl=document.getElementById('cartList');
+  if(cartListEl){
+    cartListEl.addEventListener('click',function(e){
+      var t=e.target.closest('button');
+      if(!t) return;
+      var id=t.getAttribute('data-inc')||t.getAttribute('data-dec')||t.getAttribute('data-del');
+      if(!id) return;
+      var q=Number(shopCart[id])||0;
+      if(t.getAttribute('data-inc')) q+=1;
+      else if(t.getAttribute('data-dec')) q-=1;
+      else q=0;
+      if(q<=0) delete shopCart[id]; else shopCart[id]=q;
+      cartSave(); renderCart();
+    });
+  }
+  var cartOpenBtn=document.getElementById('cartOpen');
+  if(cartOpenBtn) cartOpenBtn.addEventListener('click',function(){ renderCart(); cartModal.classList.add('open'); });
+  var cartCloseBtn=document.getElementById('cartClose');
+  if(cartCloseBtn) cartCloseBtn.addEventListener('click',function(){ cartModal.classList.remove('open'); });
+  if(cartModal) cartModal.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
+
+  async function applyPromo(){
+    var st=document.getElementById('cartStatus');
+    var input=document.getElementById('promoInput');
+    var code=(input.value||'').trim();
+    st.className='form-status';
+    if(!supabase){ st.className='form-status err'; st.textContent='База недоступна'; return; }
+    if(!code){ shopPromo=null; st.textContent=''; renderCart(); return; }
+    var s=cartStats();
+    if(!s.cnt){ st.className='form-status err'; st.textContent='Сначала добавь товары'; return; }
+    st.textContent='Проверяем...';
+    try{
+      var {data,error}=await supabase.rpc('shop_promo_check',{p_code:code,p_subtotal:s.sum});
+      if(error) throw error;
+      var r=Array.isArray(data)?data[0]:data;
+      if(!r||!r.ok){
+        shopPromo=null;
+        st.className='form-status err';
+        st.textContent=(r&&r.error)||'Промокод не подошёл';
+        renderCart();
+        return;
+      }
+      shopPromo={code:r.code||code.toUpperCase(),kind:r.kind,value:Number(r.value)};
+      st.className='form-status ok';
+      st.textContent='Промокод применён';
+      renderCart();
+    }catch(e){
+      st.className='form-status err';
+      st.textContent='Ошибка: '+e.message;
+    }
+  }
+  var promoApplyBtn=document.getElementById('promoApply');
+  if(promoApplyBtn) promoApplyBtn.addEventListener('click',applyPromo);
+  var checkoutBtn=document.getElementById('cartCheckout');
+  if(checkoutBtn) checkoutBtn.addEventListener('click',placeOrder);
+
+  async function placeOrder(){
+    var st=document.getElementById('cartStatus');
+    var lines=cartLines();
+    if(!lines.length){ st.className='form-status err'; st.textContent='Корзина пуста'; return; }
+    if(!steamData){ st.className='form-status err'; st.textContent='Войди через Steam — иначе некуда выдавать покупку'; return; }
+    st.className='form-status'; st.textContent='Оформляем...';
+    try{
+      var payload=lines.map(function(l){ return {id:l.it.id, qty:l.qty}; });
+      var {data,error}=await supabase.rpc('shop_place_order',{
+        p_items:payload,
+        p_promo:shopPromo?shopPromo.code:null,
+        p_steamid:steamData.steamid,
+        p_nick:steamName()
+      });
+      if(error) throw error;
+      var r=Array.isArray(data)?data[0]:data;
+      shopCart={}; cartSave();
+      shopPromo=null;
+      document.getElementById('promoInput').value='';
+      renderCart();
+      st.className='form-status ok';
+      st.innerHTML='Заказ <b>№'+r.id+'</b> создан на <b>'+shopMoney(r.total)+'</b>.<br>Переведи сумму админу в Discord и укажи номер заказа — после подтверждения оплаты предметы придут в игру.';
+      notifyOrder(r, lines);
+      if(isOwner) loadShopOrders();
+    }catch(e){
+      st.className='form-status err';
+      st.textContent='Не удалось оформить: '+e.message;
+    }
+  }
+
+  function notifyOrder(r, lines){
+    try{
+      var text=lines.map(function(l){ return l.it.name+' ×'+(Number(l.it.amount)*l.qty); }).join('\n');
+      fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          content:'**Новый заказ №'+r.id+'**\n**Покупатель:** '+steamName()+' (Steam '+steamData.steamid+')\n'+
+                  '**Сумма:** '+shopMoney(r.total)+(Number(r.discount)>0?' (скидка '+shopMoney(r.discount)+')':'')+
+                  '\n```\n'+text+'\n```\nПодтвердить оплату: https://hunterxxx225.github.io/yxs222/#server'
+        })}).catch(function(){});
+    }catch(e){}
+  }
+
+  // ---- админка магазина ----
+  var ORDER_LABEL={pending:'Ожидает оплаты',paid:'Оплачен',processing:'Выдаётся',delivered:'Выдан',cancelled:'Отменён'};
+
+  function shopAdminShell(){
+    if(!shopAdmin||shopAdmin.getAttribute('data-ready')==='1') return;
+    shopAdmin.setAttribute('data-ready','1');
+    shopAdmin.innerHTML=
+      '<h4>Заказы</h4><div id="shopOrders"><p style="color:var(--muted)">Заказов нет.</p></div>'+
+      '<h4>Промокоды</h4><div class="admin-grid">'+
+        '<input type="text" id="promoCode" placeholder="КОД">'+
+        '<select id="promoKind"><option value="percent">% скидка</option><option value="fixed">₽ скидка</option></select>'+
+        '<input type="number" id="promoValue" placeholder="Значение" min="1" step="0.01">'+
+        '<input type="number" id="promoUses" placeholder="Активаций (∞)" min="1">'+
+        '<input type="number" id="promoMin" placeholder="Мин. сумма, ₽" min="0">'+
+        '<button class="btn btn-solid" id="promoAdd" style="padding:9px 12px;font-size:.76rem">Добавить</button>'+
+      '</div>'+
+      '<div class="form-status" id="promoStatus"></div>'+
+      '<div id="promoList" style="margin-top:12px"></div>'+
+      '<h4>Товары</h4><div class="admin-grid">'+
+        '<input type="text" id="siName" placeholder="Название">'+
+        '<input type="text" id="siShort" placeholder="shortname (rifle.ak)">'+
+        '<input type="number" id="siAmount" placeholder="Кол-во" min="1" value="1">'+
+        '<input type="number" id="siPrice" placeholder="Цена, ₽" min="0" step="0.01">'+
+        '<input type="text" id="siCat" placeholder="Категория">'+
+        '<input type="text" id="siImg" placeholder="Картинка (URL)">'+
+        '<button class="btn btn-solid" id="siAdd" style="padding:9px 12px;font-size:.76rem">Добавить</button>'+
+      '</div>'+
+      '<div class="form-status" id="siStatus"></div>'+
+      '<div id="shopItemList" style="margin-top:12px"></div>';
+    document.getElementById('promoAdd').addEventListener('click',addPromo);
+    document.getElementById('siAdd').addEventListener('click',addShopItem);
+  }
+
+  async function loadShopAdmin(){
+    if(!isOwner||!supabase||!shopAdmin){ if(shopAdmin) shopAdmin.style.display='none'; return; }
+    shopAdminShell();
+    shopAdmin.style.display='block';
+    loadShopOrders(); loadPromoList(); loadAdminItems();
+  }
+
+  async function loadShopOrders(){
+    var box=document.getElementById('shopOrders');
+    if(!box) return;
+    try{
+      var {data,error}=await supabase.from('shop_orders').select('*').order('id',{ascending:false}).limit(50);
+      if(error) throw error;
+      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Заказов нет.</p>'; return; }
+      box.innerHTML=data.map(orderHtml).join('');
+    }catch(e){
+      box.innerHTML='<p class="form-status err">Ошибка: '+esc(e.message)+'</p>';
+    }
+  }
+
+  function orderHtml(o){
+    var d=new Date(o.created_at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    var items=(o.items||[]).map(function(i){ return esc(i.name)+' ×'+i.qty; }).join(', ');
+    var acts='';
+    if(o.status==='pending')
+      acts='<button onclick="shopSetStatus('+o.id+',\'paid\')">Оплачен</button>'+
+           '<button class="danger" onclick="shopSetStatus('+o.id+',\'cancelled\')">Отменить</button>';
+    else if(o.status==='paid')
+      acts='<button class="danger" onclick="shopSetStatus('+o.id+',\'cancelled\')">Отменить</button>';
+    var cls=o.status==='delivered'?'st-resolved':(o.status==='processing'?'st-progress':'st-open');
+    return '<div class="order-item">'+
+      '<div class="o-head"><span class="o-who">#'+o.id+' · '+esc(o.nick||o.steamid)+'</span>'+
+        '<span class="c-status '+cls+'">'+(ORDER_LABEL[o.status]||o.status)+'</span></div>'+
+      '<div class="o-meta">'+d+' · '+esc(o.steamid)+(o.note?' · '+esc(o.note):'')+'</div>'+
+      '<div class="o-items">'+items+'</div>'+
+      '<div class="o-items" style="font-weight:700">'+shopMoney(o.total)+
+        (Number(o.discount)>0?' · скидка '+shopMoney(o.discount)+(o.promo?' ('+esc(o.promo)+')':''):'')+'</div>'+
+      (acts?'<div class="o-actions">'+acts+'</div>':'')+
+    '</div>';
+  }
+
+  window.shopSetStatus=async function(id,status){
+    if(!isOwner||!supabase) return;
+    var patch={status:status};
+    if(status==='paid') patch.paid_at=new Date().toISOString();
+    var {error}=await supabase.from('shop_orders').update(patch).match({id:id});
+    if(error){ alert(error.message); return; }
+    showToast(status==='paid'?'Оплачен — плагин выдаст в течение минуты':'Заказ обновлён');
+    loadShopOrders();
+  };
+
+  async function loadPromoList(){
+    var box=document.getElementById('promoList');
+    if(!box) return;
+    try{
+      var {data,error}=await supabase.from('promo_codes').select('*').order('created_at',{ascending:false});
+      if(error) throw error;
+      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Промокодов нет.</p>'; return; }
+      box.innerHTML=data.map(function(p){
+        var val=p.kind==='percent'?p.value+'%':shopMoney(p.value);
+        return '<div class="promo-item"><span><b>'+esc(p.code)+'</b> · '+val+
+          (p.uses_left==null?' · ∞':' · осталось '+p.uses_left)+
+          (Number(p.min_total)>0?' · от '+shopMoney(p.min_total):'')+
+          (p.active?'':' · выкл')+'</span><span>'+
+          '<button class="shop-mini" onclick="shopTogglePromo(\''+esc(p.code)+'\','+(!p.active)+')">'+(p.active?'выкл':'вкл')+'</button>'+
+          '<button class="shop-mini danger" onclick="shopDelPromo(\''+esc(p.code)+'\')">✕</button>'+
+        '</span></div>';
+      }).join('');
+    }catch(e){
+      box.innerHTML='<p class="form-status err">Ошибка: '+esc(e.message)+'</p>';
+    }
+  }
+
+  async function addPromo(){
+    var st=document.getElementById('promoStatus');
+    var code=(document.getElementById('promoCode').value||'').trim().toUpperCase();
+    var kind=document.getElementById('promoKind').value;
+    var val=Number(document.getElementById('promoValue').value);
+    var usesRaw=document.getElementById('promoUses').value;
+    var min=Number(document.getElementById('promoMin').value||0);
+    if(!code||!val||val<=0){ st.className='form-status err'; st.textContent='Нужны код и значение'; return; }
+    var row={code:code,kind:kind,value:val,min_total:min||0,uses_left:usesRaw===''?null:Number(usesRaw),active:true};
+    var {error}=await supabase.from('promo_codes').upsert(row,{onConflict:'code'});
+    if(error){ st.className='form-status err'; st.textContent='Ошибка: '+error.message; return; }
+    st.className='form-status ok'; st.textContent='Промокод сохранён';
+    document.getElementById('promoCode').value='';
+    document.getElementById('promoValue').value='';
+    document.getElementById('promoUses').value='';
+    document.getElementById('promoMin').value='';
+    loadPromoList();
+  }
+
+  async function loadAdminItems(){
+    var box=document.getElementById('shopItemList');
+    if(!box) return;
+    try{
+      var {data,error}=await supabase.from('shop_items').select('*').order('sort',{ascending:true}).order('id',{ascending:true});
+      if(error) throw error;
+      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Товаров нет.</p>'; return; }
+      box.innerHTML=data.map(function(it){
+        return '<div class="item-row"><span>'+esc(it.name)+' · '+esc(it.shortname)+' ×'+it.amount+
+          ' · '+shopMoney(it.price)+(it.active?'':' · скрыт')+'</span><span>'+
+          '<button class="shop-mini" onclick="shopToggleItem('+it.id+','+(!it.active)+')">'+(it.active?'скрыть':'показать')+'</button>'+
+          '<button class="shop-mini danger" onclick="shopDelItem('+it.id+')">✕</button>'+
+        '</span></div>';
+      }).join('');
+    }catch(e){
+      box.innerHTML='<p class="form-status err">Ошибка: '+esc(e.message)+'</p>';
+    }
+  }
+
+  async function addShopItem(){
+    var st=document.getElementById('siStatus');
+    var row={
+      name:(document.getElementById('siName').value||'').trim(),
+      shortname:(document.getElementById('siShort').value||'').trim(),
+      amount:Number(document.getElementById('siAmount').value||1),
+      price:Number(document.getElementById('siPrice').value||0),
+      category:(document.getElementById('siCat').value||'Предметы').trim()||'Предметы',
+      img:(document.getElementById('siImg').value||'').trim()
+    };
+    if(!row.name||!row.shortname||!isFinite(row.price)){ st.className='form-status err'; st.textContent='Нужны название, shortname и цена'; return; }
+    var {error}=await supabase.from('shop_items').insert(row);
+    if(error){ st.className='form-status err'; st.textContent='Ошибка: '+error.message; return; }
+    st.className='form-status ok'; st.textContent='Товар добавлен';
+    document.getElementById('siName').value='';
+    document.getElementById('siShort').value='';
+    document.getElementById('siPrice').value='';
+    document.getElementById('siImg').value='';
+    loadAdminItems(); loadShopItems();
+  }
+
+  window.shopDelPromo=async function(code){
+    if(!isOwner||!supabase) return;
+    var {error}=await supabase.from('promo_codes').delete().match({code:code});
+    if(error){ alert(error.message); return; }
+    loadPromoList();
+  };
+  window.shopTogglePromo=async function(code,on){
+    if(!isOwner||!supabase) return;
+    var {error}=await supabase.from('promo_codes').update({active:!!on}).match({code:code});
+    if(error){ alert(error.message); return; }
+    loadPromoList();
+  };
+  window.shopDelItem=async function(id){
+    if(!isOwner||!supabase) return;
+    if(!confirm('Удалить товар из магазина?')) return;
+    var {error}=await supabase.from('shop_items').delete().match({id:id});
+    if(error){ alert(error.message); return; }
+    loadAdminItems(); loadShopItems();
+  };
+  window.shopToggleItem=async function(id,on){
+    if(!isOwner||!supabase) return;
+    var {error}=await supabase.from('shop_items').update({active:!!on}).match({id:id});
+    if(error){ alert(error.message); return; }
+    loadAdminItems(); loadShopItems();
+  };
+
   // ============ Init ============
   updateMemberButtons();
   loadPosts();
@@ -1991,6 +2488,8 @@ swClan.addEventListener('click',function(){ setView('clan'); });
   if(typeof applyTicketStatusFromUrl==='function'){ setTimeout(applyTicketStatusFromUrl, 800); }
   renderSteam();
   handleSteamReturn();
+  loadShopItems();
+  if(isOwner) loadShopAdmin();
 </script>
 
 </body>
