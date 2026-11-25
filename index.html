@@ -982,7 +982,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.2 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.3 · админ</span>
   </div>
 </footer>
 
@@ -2060,6 +2060,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
           steamData={steamid:j.steamid, profile:j.profile||null};
           try{ localStorage.setItem('yxs_steam', JSON.stringify(steamData)); }catch(e){}
           showToast('Вы вошли как '+steamName());
+          shopRegister();
         }
       }
     }catch(e){}
@@ -2313,7 +2314,8 @@ swClan.addEventListener('click',function(){ setView('clan'); });
         '<button class="btn btn-solid" id="siAdd" style="padding:9px 12px;font-size:.76rem">Добавить</button>'+
       '</div>'+
       '<div class="form-status" id="siStatus"></div>'+
-      '<div id="shopItemList" style="margin-top:12px"></div>';
+      '<div id="shopItemList" style="margin-top:12px"></div>'+
+      '<h4>Пользователи (Steam)</h4><div id="shopUsers"><p style="color:var(--muted)">Загрузка...</p></div>';
     document.getElementById('promoAdd').addEventListener('click',addPromo);
     document.getElementById('siAdd').addEventListener('click',addShopItem);
   }
@@ -2322,7 +2324,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
     if(!isOwner||!supabase||!shopAdmin){ if(shopAdmin) shopAdmin.style.display='none'; return; }
     shopAdminShell();
     shopAdmin.style.display='block';
-    loadShopOrders(); loadPromoList(); loadAdminItems();
+    loadShopOrders(); loadPromoList(); loadAdminItems(); loadShopUsers();
   }
 
   async function loadShopOrders(){
@@ -2476,6 +2478,50 @@ swClan.addEventListener('click',function(){ setView('clan'); });
     loadAdminItems(); loadShopItems();
   };
 
+  // ---- Steam-пользователи и баланс ----
+  async function shopRegister(){
+    if(!supabase||!steamData) return;
+    try{
+      var pr=steamData.profile||{};
+      await supabase.rpc('shop_register_user',{p_steamid:steamData.steamid,p_nick:pr.name||'',p_ava:pr.avatar||''});
+    }catch(e){}
+  }
+
+  async function loadShopUsers(){
+    var box=document.getElementById('shopUsers');
+    if(!box) return;
+    try{
+      var {data,error}=await supabase.from('shop_users')
+        .select('steamid,nick,balance,last_login').order('last_login',{ascending:false}).limit(100);
+      if(error) throw error;
+      if(!data||!data.length){
+        box.innerHTML='<p style="color:var(--muted)">Пока никто не входил через Steam.</p>';
+        return;
+      }
+      box.innerHTML=data.map(function(u){
+        return '<div class="item-row"><span>'+esc(u.nick||u.steamid)+' · '+esc(u.steamid)+
+          ' · <b>'+shopMoney(u.balance)+'</b></span><span>'+
+          '<input type="number" class="bal-inp" data-sid="'+esc(u.steamid)+'" placeholder="₽" min="1" step="1" '+
+            'style="width:78px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:5px 8px;font-size:.78rem">'+
+          '<button class="shop-mini" onclick="shopCredit(\''+esc(u.steamid)+'\')">+</button>'+
+        '</span></div>';
+      }).join('');
+    }catch(e){
+      box.innerHTML='<p class="form-status err">Ошибка: '+esc(e.message)+'</p>';
+    }
+  }
+
+  window.shopCredit=async function(steamid){
+    if(!isOwner||!supabase) return;
+    var inp=document.querySelector('.bal-inp[data-sid="'+steamid+'"]');
+    var amount=Number(inp?inp.value:0);
+    if(!amount){ showToast('Укажи сумму'); return; }
+    var {data,error}=await supabase.rpc('shop_credit',{p_steamid:steamid,p_amount:amount});
+    if(error){ alert(error.message); return; }
+    showToast('Баланс: '+shopMoney(data));
+    loadShopUsers();
+  };
+
   // ============ Init ============
   updateMemberButtons();
   loadPosts();
@@ -2490,6 +2536,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
   handleSteamReturn();
   loadShopItems();
   if(isOwner) loadShopAdmin();
+  shopRegister();
 </script>
 
 </body>
