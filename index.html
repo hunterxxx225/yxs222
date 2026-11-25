@@ -1894,7 +1894,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
   setInterval(loadServerStats, 20000);
 
   // ============ Steam login ============
-  var STEAM_FN='https://zljadqzgyfqyhojyuuii.supabase.co/functions/v1/steam-login';
+  var STEAM_FN='https://zljadqzgyfqyhojyuuii.supabase.co/functions/v1/super-action';
   var steamData=null;
   try{ steamData=JSON.parse(localStorage.getItem('yxs_steam')||'null'); }catch(e){}
 
@@ -1936,7 +1936,9 @@ swClan.addEventListener('click',function(){ setView('clan'); });
     }
     if(!tok) return;
     try{
-      var r=await fetch(STEAM_FN+'?action=verify&token='+encodeURIComponent(tok));
+      var r=await fetch(STEAM_FN+'?action=verify&token='+encodeURIComponent(tok),{
+        headers:{'Authorization':'Bearer '+SUPABASE_KEY,'apikey':SUPABASE_KEY}
+      });
       if(r.ok){
         var j=await r.json();
         if(j && j.steamid){
