@@ -139,14 +139,19 @@
     display:flex;align-items:center;gap:14px}
   .sec-kicker::before{content:"";width:34px;height:1px;background:var(--red)}
   .sec-head h2{font-size:clamp(1.9rem,4.2vw,2.9rem);font-weight:900;margin-top:16px;text-transform:uppercase;letter-spacing:.01em}
+  .sec-head h1{font-size:clamp(1.9rem,4.2vw,2.9rem);font-weight:900;margin-top:16px;text-transform:uppercase;letter-spacing:.01em}
   .sec-head p{color:var(--muted);margin-top:14px;font-size:1.05rem}
 
   /* клан: та же сетка и плотность, что на странице сервера, но в красном */
-  #about,#recruit,#members,#progress{padding:76px 0}
-  .clan-facts{padding:0 0 12px}
-  .clan-facts .server-info{margin-bottom:0}
+  .clan-sec{padding:40px 0}
+  .clan-banner{position:relative;border-radius:16px;overflow:hidden;border:1px solid rgba(255,60,60,.16);margin-bottom:22px}
+  .clan-banner img{width:100%;height:min(44vh,420px);object-fit:cover;display:block;opacity:.95}
+  .clan-banner-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;text-align:center;padding:24px;background:linear-gradient(180deg,rgba(0,0,0,.2),rgba(0,0,0,.68))}
+  .clan-banner-in .hero-subtitle{margin-top:0}
+  .clan-crit{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+  .clan-crit-note{color:var(--muted);font-size:.82rem;margin-top:6px}
   .clan-view .card,.clan-view .member{border-color:rgba(255,60,60,.12)}
-  .clan-view .card:hover,.clan-view .member:hover{border-color:var(--line)}
   .cards,.clan-view .members{gap:16px}
 
   /* cards (about) */
@@ -621,7 +626,7 @@
   /* gradient headline accent */
   .hero h1 em{text-shadow:0 0 40px rgba(255,60,60,.35)}
   .sec-head h2{position:relative}
-  .sec-head h2::after{content:"";display:block;width:70px;height:3px;margin-top:16px;
+  .sec-head h2::after,.sec-head h1::after{content:"";display:block;width:70px;height:3px;margin-top:16px;
     background:linear-gradient(90deg,var(--red),var(--ember));border-radius:3px;
     box-shadow:0 0 16px var(--glow)}
   .sec-kicker{letter-spacing:.34em}
@@ -746,120 +751,84 @@
 <div class="views-wrap" id="viewsWrap">
 <div class="view clan-view" id="clanView">
 
-<section class="hero">
-  <img src="banner.webp" alt="" class="hero-banner">
-  <div class="hero-shade"></div>
-  <div class="bg-ring ring1"></div>
-  <div class="bg-ring ring2"></div>
+<section id="clan" class="clan-sec">
   <div class="container">
-    <div class="tag"><span class="dot"></span>Clan · Rust</div>
-    <h1 class="hero-title">
-      <span class="line"><em>YxS</em></span>
-    </h1>
-    <div class="hero-subtitle">Your x Sorrow</div>
-    <p class="sub">Клан <b>[YxS]</b> — отлаженная машина выживания в Rust. Крепкая база, тяжёлые рейды, жёсткий PvP и свои люди, на которых можно положиться в любой вайп.</p>
-    <div class="btn-row">
-      <a class="btn btn-solid" href="https://discord.gg/yxs"><span class="ico">→</span> Discord — вступить</a>
-      <a class="btn btn-ghost" href="#about">Узнать больше</a>
+    <div class="sec-head reveal">
+      <div class="sec-kicker">Наш клан</div>
+      <h1>YxS · Клан</h1>
+      <p>Your x Sorrow. База, рейды, PvP — и люди, на которых можно положиться весь вайп.</p>
     </div>
-  </div>
-  <div class="hero-scroll"><span>Листай</span><span class="wheel"></span></div>
-  <div class="fade-bottom"></div>
-</section>
 
-<section class="clan-facts">
-  <div class="container">
+    <div class="clan-banner reveal">
+      <img src="banner.webp" alt="YxS">
+      <div class="clan-banner-in">
+        <div class="tag"><span class="dot"></span>Clan · Rust</div>
+        <div class="hero-subtitle">Your x Sorrow</div>
+        <div class="btn-row" style="justify-content:center">
+          <a class="btn btn-solid" href="https://discord.gg/yxs">Discord — вступить</a>
+        </div>
+      </div>
+    </div>
+
     <div class="server-info reveal">
       <div class="s-card"><div class="s-label">Клан</div><div class="s-val">[YxS]</div></div>
-      <div class="s-card"><div class="s-label">Состав</div><div class="s-val" id="clanCount">—</div></div>
       <div class="s-card"><div class="s-label">Сервер</div><div class="s-val">Rust · 2x</div></div>
       <div class="s-card"><div class="s-label">Discord</div><div class="s-val">discord.gg/yxs</div></div>
+      <div class="s-card"><div class="s-label">Набор</div><div class="s-val">16+ · 2000 ч</div></div>
     </div>
-  </div>
-</section>
 
-<section id="about">
-  <div class="container">
-    <div class="sec-head reveal">
-      <div class="sec-kicker">О клане</div>
-      <h2>Почему YxS</h2>
-      <p>Мы не «толпа на один вайп». YxS — это дисциплина, чёткие роли и общая цель. Каждый здесь — частичка огромного механизма.</p>
+    <div class="server-rules reveal">
+      <h3>Почему YxS</h3>
+      <ul>
+        <li><span class="r-num">01</span><span><b>База под ключ.</b> Тяжёлая последовательная база с мульти-ТС, турелями и внутренней логикой. Строим с нуля и держим до конца вайпа.</span></li>
+        <li><span class="r-num">02</span><span><b>Рейды без хаоса.</b> Разведка, план, координация в Discord. Каждый рейд продуман, без понтов на рандомных стенах.</span></li>
+        <li><span class="r-num">03</span><span><b>Тим-плей и PvP.</b> Тренировки, совместные засидки и контроль карты. Фраги без нытья и самоуправства.</span></li>
+        <li><span class="r-num">04</span><span><b>Честность.</b> Никакого грефа внутри и воровства из общих ящиков. Нарушил — вылетел.</span></li>
+      </ul>
     </div>
-    <div class="cards">
-      <div class="card reveal"><div class="num">01</div><h3>База под ключ</h3>
-        <p>Тяжёлая последовательная база с мульти-ТС, турелями и внутренней логикой. Строим с нуля и держим до конца вайпа.</p></div>
-      <div class="card reveal"><div class="num">02</div><h3>Рейды без хаоса</h3>
-        <p>Разведка, план, координация в дискорде. Каждый рейд продуман, никаких розовых понтов на рандомных стенах.</p></div>
-      <div class="card reveal"><div class="num">03</div><h3>Тим-плей и PvP</h3>
-        <p>Ежедневные тренировки, совместные засидки и контроль карты. Фраги без нытья и самоуправства.</p></div>
-      <div class="card reveal"><div class="num">04</div><h3>Честность</h3>
-        <p>Никакого грефа внутри, никакого воровства из общих ящиков. Нарушил — вылетел. На простоте держится всё.</p></div>
-    </div>
-  </div>
-</section>
 
-<section id="recruit" style="background:var(--bg2);border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)">
-  <div class="container">
-    <div class="sec-head reveal">
-      <div class="sec-kicker">Рекрут</div>
-      <h2>Кого мы берём</h2>
-      <p>Хочешь к нам — вот два жёстких критерия, остальное решает собеседование в дискорде.</p>
+    <div class="complaint-sec reveal" id="recruit">
+      <h3>Кого мы берём</h3>
+      <p class="complaint-sub">Два жёстких критерия, остальное решает собеседование в Discord.</p>
+      <div class="clan-crit">
+        <div class="s-card"><div class="s-label">Возраст</div><div class="s-val">16+</div><div class="clan-crit-note">Отвечаем за свои слова и время</div></div>
+        <div class="s-card"><div class="s-label">Часы в Rust</div><div class="s-val">2000+</div><div class="clan-crit-note">База и PvP-механика на уровне</div></div>
+      </div>
+      <div class="btn-row" style="margin-top:20px">
+        <a class="btn btn-solid" href="https://discord.gg/yxs">Написать в Discord</a>
+      </div>
     </div>
-    <div class="members">
-      <div class="member reveal"><div class="avatar">16+</div><h4>Возраст</h4>
-        <div class="role">Требование</div><p class="desc">От 16 лет. Отвечаем за свои слова и время.</p></div>
-      <div class="member reveal"><div class="avatar">2000+</div><h4>Часы в Rust</h4>
-        <div class="role">Обязательно</div><p class="desc">2000+ часов. База игры и PvP-механика на уровне.</p></div>
-    </div>
-  </div>
-</section>
 
-<div class="cta-band" id="join">
-  <div class="container reveal">
-    <div class="kicker">Вступай</div>
-    <h2>Готов встать в строй?</h2>
-    <p>Заходи на наш сервер в Discord, напиши в канал рекрута и отметь возраст и часы. Мы ответим в течение дня.</p>
-    <div class="btn-row" style="justify-content:center">
-      <a class="btn btn-solid" href="https://discord.gg/yxs"> Discord — вступить</a>
-    </div>
-  </div>
-</div>
+    <div class="server-rules reveal" style="margin-top:34px">
+      <h3>Прогресс вайпа</h3>
+      <p class="complaint-sub">Свежие репорты с сервера: что построили, что срейдили, что дальше.</p>
 
-<section id="progress">
-  <div class="container">
-    <div class="progress-head">
-      <div class="sec-head reveal" style="margin-bottom:0">
-        <div class="sec-kicker">Хроника</div>
-        <h2>Прогресс вайпа</h2>
-        <p>Свежие репорты с сервера: что построили, что срейдили, что дальше.</p>
+      <div class="owner-form reveal" id="ownerForm" style="margin-top:18px">
+        <h3>Новая запись</h3>
+        <div class="field">
+          <label for="postText">Текст</label>
+          <textarea id="postText" rows="4" placeholder="Что произошло на вайпе..."></textarea>
+        </div>
+        <div class="field">
+          <label>Скриншоты</label>
+          <div class="imgs-row" id="imgsRow"></div>
+          <label class="add-img-btn" for="imgInput">+<br>Добавить<br>фото</label>
+          <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
+        </div>
+        <div class="form-actions">
+          <button class="btn-submit" id="postSubmit">Опубликовать</button>
+          <button class="btn-cancel" id="postCancel">Отмена</button>
+        </div>
+        <div class="form-status" id="formStatus"></div>
       </div>
-      <button class="btn btn-ghost owner-btn reveal" id="ownerBtn" style="visibility:hidden;position:absolute">Владелец · добавить</button>
+
+      <div class="timeline" id="timeline"></div>
+      <p class="reveal" id="emptyState" style="color:var(--muted);margin-top:24px">Пока нет записей. Владелец, добавь первый репорт о вайпе.</p>
     </div>
-    <div class="owner-form reveal" id="ownerForm">
-      <h3>Новая запись</h3>
-      <div class="field">
-        <label for="postText">Текст</label>
-        <textarea id="postText" rows="4" placeholder="Что произошло на вайпе..."></textarea>
-      </div>
-      <div class="field">
-        <label>Скриншоты</label>
-        <div class="imgs-row" id="imgsRow"></div>
-        <label class="add-img-btn" for="imgInput">+<br>Добавить<br>фото</label>
-        <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
-      </div>
-      <div class="form-actions">
-        <button class="btn-submit" id="postSubmit">Опубликовать</button>
-        <button class="btn-cancel" id="postCancel">Отмена</button>
-      </div>
-      <div class="form-status" id="formStatus"></div>
-    </div>
-    <div class="timeline" id="timeline"></div>
-    <p class="reveal" id="emptyState" style="color:var(--muted);margin-top:40px">Пока нет записей. Владелец, добавь первый репорт о вайпе.</p>
   </div>
 </section>
 
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt=""></div>
-<div class="memberCardOverlay" id="memberOverlay"></div>
 
 <div class="modal" id="passModal">
   <div class="modal-card">
@@ -873,21 +842,8 @@
   </div>
 </div>
 
-<section id="members">
-  <div class="container">
-    <div class="sec-head reveal">
-      <div class="sec-kicker">Состав</div>
-      <h2>Состав</h2>
-      <p>Командование клана. Наведи на карточку, чтобы увидеть полную инфу.</p>
-    </div>
-    <div class="members" id="memberList"></div>
-    <div style="text-align:center;margin-top:26px">
-      <button class="btn btn-ghost" id="membersEditBtn" style="display:none">Управлять составом</button>
-    </div>
-  </div>
-</section>
-
 </div><!-- /clanView -->
+
 
 <!-- edit members modal -->
 <div class="modal" id="editMembersModal">
@@ -1031,7 +987,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.11 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.0 · админ</span>
   </div>
 </footer>
 
@@ -1508,8 +1464,7 @@
 
   async function renderMembers(){
     var list=await loadMembers();
-    var cntEl=document.getElementById('clanCount');
-    if(cntEl) cntEl.textContent=list.length;
+    if(!memberListEl) return;
     memberListEl.innerHTML='';
     list.forEach(function(m,i){
       var el=document.createElement('div');
@@ -1600,7 +1555,8 @@
     var btn=document.getElementById('membersEditBtn');
     if(btn) btn.style.display=isOwner?'inline-flex':'none';
   }
-  document.getElementById('membersEditBtn').addEventListener('click',async function(){
+  var membersEditBtnEl=document.getElementById('membersEditBtn');
+  if(membersEditBtnEl) membersEditBtnEl.addEventListener('click',async function(){
     if(!isOwner) return;
     var list=await loadMembers();
     editDraft=list.map(function(m){ return {name:m.name,role:m.role,info:m.info||'',_ava:m.ava||''}; });
