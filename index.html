@@ -607,8 +607,26 @@
   /* status select emphasis */
   .c-admin select{font-weight:700;letter-spacing:.03em;cursor:pointer}
 
-  /* toast */
-  #toastMsg{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);z-index:9998;
+  /* Steam login */
+  .steam-box{display:flex;align-items:center;gap:10px}
+  .steam-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1b2838,#2a475e);
+    color:#c7d5e0;border:1px solid rgba(103,193,245,.35);border-radius:10px;padding:8px 15px;
+    font-weight:700;font-size:.76rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:.25s;white-space:nowrap}
+  .steam-btn:hover{border-color:#66c0f4;color:#fff;box-shadow:0 6px 22px -8px rgba(102,192,244,.6)}
+  .steam-btn svg{width:16px;height:16px;fill:currentColor}
+  .steam-user{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:4px 10px 4px 5px}
+  .steam-user img{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.2)}
+  .steam-user .s-ava-ph{width:28px;height:28px;border-radius:50%;background:#2a475e;color:#c7d5e0;
+    display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800}
+  .steam-user .s-name{font-size:.82rem;font-weight:700;color:var(--text);max-width:130px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .steam-user .s-logout{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;line-height:1;padding:2px}
+  .steam-user .s-logout:hover{color:var(--red)}
+  .view.server-view .steam-user{background:rgba(255,255,255,.06)}
+  @media(max-width:860px){ .steam-box .s-name{display:none} }
+
+  /* toast */  #toastMsg{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);z-index:9998;
     background:rgba(20,20,24,.95);border:1px solid rgba(255,60,60,.35);color:#fff;
     padding:12px 20px;border-radius:12px;font-size:.9rem;font-weight:600;opacity:0;pointer-events:none;
     transition:opacity .3s,transform .3s;backdrop-filter:blur(10px);max-width:90vw;text-align:center}
@@ -634,6 +652,7 @@
       <button class="sw-btn sb-clan active" id="swClan">Клан</button>
       <button class="sw-btn sb-server" id="swServer">Сервер</button>
     </div>
+    <div class="steam-box" id="steamBox"></div>
   </div>
 </header>
 
@@ -1874,6 +1893,64 @@ swClan.addEventListener('click',function(){ setView('clan'); });
   loadServerStats();
   setInterval(loadServerStats, 20000);
 
+  // ============ Steam login ============
+  var STEAM_FN='https://zljadqzgyfqyhojyuuii.supabase.co/functions/v1/steam-login';
+  var steamData=null;
+  try{ steamData=JSON.parse(localStorage.getItem('yxs_steam')||'null'); }catch(e){}
+
+  function steamName(){
+    if(!steamData) return '';
+    return (steamData.profile && steamData.profile.name) || ('Steam '+steamData.steamid);
+  }
+  function renderSteam(){
+    var box=document.getElementById('steamBox');
+    if(!box) return;
+    if(steamData){
+      var p=steamData.profile||{};
+      var ava=p.avatar ? '<img src="'+p.avatar+'" alt="">' : '<span class="s-ava-ph">S</span>';
+      box.innerHTML='<div class="steam-user">'+ava+'<span class="s-name">'+esc(steamName())+'</span>'+
+        '<button class="s-logout" id="steamLogout" title="Выйти">✕</button></div>';
+      var lo=document.getElementById('steamLogout');
+      if(lo) lo.addEventListener('click',function(){
+        steamData=null; try{ localStorage.removeItem('yxs_steam'); }catch(e){}
+        renderSteam(); showToast('Вы вышли из Steam');
+      });
+      var cn=document.getElementById('compName');
+      if(cn && !cn.value) cn.value=steamName();
+    }else{
+      box.innerHTML='<button class="steam-btn" id="steamLoginBtn">'+
+        '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-9.96 9.1l5.36 2.22a2.83 2.83 0 0 1 1.6-.49h.04l2.38-3.45v-.05a3.78 3.78 0 1 1 3.78 3.78h-.09l-3.4 2.43v.07a2.84 2.84 0 0 1-5.63.47L2.6 14.6A10 10 0 1 0 12 2z"/></svg>'+
+        'Войти через Steam</button>';
+      var b=document.getElementById('steamLoginBtn');
+      if(b) b.addEventListener('click',function(){ location.href=STEAM_FN+'?action=start'; });
+    }
+  }
+  async function handleSteamReturn(){
+    var p;
+    try{ p=new URLSearchParams(location.search); }catch(e){ return; }
+    var tok=p.get('steam_token'), err=p.get('steam_error');
+    if(err){
+      showToast('Не удалось войти через Steam');
+      var u0=new URL(location.href); u0.searchParams.delete('steam_error');
+      history.replaceState(null,'',u0.pathname+u0.search+u0.hash);
+    }
+    if(!tok) return;
+    try{
+      var r=await fetch(STEAM_FN+'?action=verify&token='+encodeURIComponent(tok));
+      if(r.ok){
+        var j=await r.json();
+        if(j && j.steamid){
+          steamData={steamid:j.steamid, profile:j.profile||null};
+          try{ localStorage.setItem('yxs_steam', JSON.stringify(steamData)); }catch(e){}
+          showToast('Вы вошли как '+steamName());
+        }
+      }
+    }catch(e){}
+    var u=new URL(location.href); u.searchParams.delete('steam_token');
+    history.replaceState(null,'',u.pathname+u.search+u.hash);
+    renderSteam();
+  }
+
   // ============ Init ============
   updateMemberButtons();
   loadPosts();
@@ -1884,6 +1961,8 @@ swClan.addEventListener('click',function(){ setView('clan'); });
   updateComplaintsUI();
   if(TICKET_LINK){ setView('server'); }
   if(typeof applyTicketStatusFromUrl==='function'){ setTimeout(applyTicketStatusFromUrl, 800); }
+  renderSteam();
+  handleSteamReturn();
 </script>
 
 </body>
