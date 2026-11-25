@@ -584,6 +584,25 @@
 
   /* ===== Rust snowflake particles canvas ===== */
   #flakeCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:.85}
+
+  /* ===== Complaint thread ===== */
+  .thread{margin-top:12px;display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px}
+  .thread-msg{padding:8px 11px;border-radius:10px;font-size:.88rem;line-height:1.45;white-space:pre-wrap;word-break:break-word;
+    background:rgba(255,255,255,.05);border-left:3px solid rgba(255,255,255,.2)}
+  .thread-msg.admin{background:rgba(255,60,60,.12);border-left-color:var(--red)}
+  .thread-msg .t-who{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;font-weight:800;margin-bottom:3px;color:var(--muted)}
+  .thread-msg.admin .t-who{color:var(--red)}
+  .thread-form{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .thread-form input{flex:1;min-width:150px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+    border-radius:8px;color:var(--text);padding:8px 11px;font-size:.85rem}
+  .thread-form button{background:var(--red);border:none;color:#fff;border-radius:8px;padding:8px 14px;
+    font-weight:700;font-size:.8rem;cursor:pointer}
+  .thread-form button:hover{background:var(--red-dark)}
+  .view.server-view .thread-msg{background:rgba(255,255,255,.05);border-left-color:rgba(255,255,255,.25)}
+  .view.server-view .thread-msg.admin{background:rgba(255,255,255,.1);border-left-color:#fff}
+  .view.server-view .thread-form button{background:#e8e8e8;color:#0a0a0b}
+  /* status select emphasis */
+  .c-admin select{font-weight:700;letter-spacing:.03em;cursor:pointer}
 </style>
 </head>
 <body>
@@ -1559,6 +1578,43 @@ swClan.addEventListener('click',function(){ setView('clan'); });
   }
   var STATUS_LABEL={open:'Открыта',progress:'В работе',resolved:'Решена'};
   function statusLabel(s){ return STATUS_LABEL[s]||'Открыта'; }
+  var TICKET_LINK='';
+  try{ TICKET_LINK=new URLSearchParams(location.search).get('ticket')||''; }catch(e){}
+
+  // ---- thread helpers ----
+  async function fetchThread(id){
+    if(!supabase) return [];
+    try{
+      var {data,error}=await supabase.from('complaint_messages').select('*').eq('complaint_id',id).order('created_at',{ascending:true});
+      if(error) return [];
+      return data||[];
+    }catch(e){ return []; }
+  }
+  function threadHtml(msgs){
+    if(!msgs.length) return '<div class="thread"><div class="thread-msg" style="opacity:.6">Комментариев пока нет.</div></div>';
+    return '<div class="thread">'+msgs.map(function(m){
+      return '<div class="thread-msg'+(m.is_admin?' admin':'')+'">'+
+        '<span class="t-who">'+esc(m.author||'—')+(m.is_admin?' · админ':'')+'</span>'+
+        esc(m.text)+'</div>';
+    }).join('')+'</div>';
+  }
+  async function sendThread(complaintId, author, text, isAdmin){
+    if(!supabase || !text) return false;
+    try{
+      var {error}=await supabase.from('complaint_messages').insert({complaint_id:complaintId, author:author||'—', text:text, is_admin:!!isAdmin});
+      return !error;
+    }catch(e){ return false; }
+  }
+  async function hydrateThreads(root, adminView){
+    if(!root) return;
+    var slots=root.querySelectorAll('[data-thread]');
+    for(var i=0;i<slots.length;i++){
+      var id=slots[i].getAttribute('data-thread');
+      var msgs=await fetchThread(id);
+      slots[i].innerHTML=threadHtml(msgs);
+    }
+  }
+
   function renderComplaints(list){
     var box=document.getElementById('complaintsList');
     if(!box) return;
@@ -1575,36 +1631,66 @@ swClan.addEventListener('click',function(){ setView('clan'); });
         '<span class="c-date">'+date+'</span></div>'+
         (c.target?'<div class="c-on"><b>На:</b> '+esc(c.target)+'</div>':'')+
         '<div class="c-text">'+esc(c.text)+'</div>'+
-        (c.reply?'<div class="c-reply"><b>Ответ:</b> '+esc(c.reply)+'</div>':'')+
+        '<div data-thread="'+c.id+'"></div>'+
+        '<div class="thread-form">'+
+          '<input data-tin="'+c.id+'" placeholder="Ответить игроку...">'+
+          '<button data-tsend="'+c.id+'">Отправить</button>'+
+        '</div>'+
         '<div class="c-admin">'+
+          '<label style="font-size:.75rem;color:var(--muted);letter-spacing:.05em">СТАТУС</label>'+
           '<select data-status="'+c.id+'">'+
             '<option value="open"'+((c.status||'open')==='open'?' selected':'')+'>Открыта</option>'+
             '<option value="progress"'+((c.status||'open')==='progress'?' selected':'')+'>В работе</option>'+
             '<option value="resolved"'+((c.status||'open')==='resolved'?' selected':'')+'>Решена</option>'+
           '</select>'+
-          '<input type="text" data-reply="'+c.id+'" value="'+esc(c.reply||'')+'" placeholder="Ответ игроку...">'+
-          '<button class="c-submit" data-save="'+c.id+'">Сохранить</button>'+
+          '<button class="c-submit" data-save="'+c.id+'">Сменить статус</button>'+
           '<button class="c-del" onclick="deleteComplaint(\''+c.id+'\')">✕</button>'+
         '</div>';
       box.appendChild(el);
     });
-    // bind save
+    hydrateThreads(box, true);
+    // подсветить жалобу, если пришли по ссылке из Discord
+    if(TICKET_LINK){
+      var slot=box.querySelector('[data-thread="'+TICKET_LINK+'"]');
+      if(slot){
+        var card=slot.closest('.c-item');
+        if(card){ card.style.outline='2px solid var(--red)'; card.scrollIntoView({block:'center'}); }
+      }
+    }
+    // статус
     box.querySelectorAll('[data-save]').forEach(function(b){
       b.addEventListener('click',async function(){
         var cid=b.dataset.save;
         var sel=box.querySelector('[data-status="'+cid+'"]');
-        var inp=box.querySelector('[data-reply="'+cid+'"]');
         var status=sel?sel.value:'open';
-        var reply=inp?inp.value.trim():'';
         try{
-          var {error}=await supabase.from('complaints').update({status:status,reply:reply}).match({id:cid});
+          var {error}=await supabase.from('complaints').update({status:status}).match({id:cid});
           if(error){ alert(error.message); return; }
           loadComplaints();
         }catch(e){ alert('Ошибка: '+e.message); }
       });
     });
+    // ответ админа -> комментарий + эхо в Discord
+    box.querySelectorAll('[data-tsend]').forEach(function(b){
+      b.addEventListener('click',async function(){
+        var cid=b.dataset.tsend;
+        var inp=box.querySelector('[data-tin="'+cid+'"]');
+        var text=inp?inp.value.trim():'';
+        if(!text) return;
+        var ok=await sendThread(cid, 'Админ', text, true);
+        if(!ok){ alert('Не удалось отправить'); return; }
+        inp.value='';
+        // сохраняем как reply (для совместимости) и эхо в Discord
+        try{ await supabase.from('complaints').update({reply:text}).match({id:cid}); }catch(e){}
+        try{
+          await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({content:'**Ответ админа**\n'+text})});
+        }catch(e){}
+        loadComplaints();
+      });
+    });
   }
-  function ticketHtml(c){
+  function ticketHtml(c, viewer){
     var d=new Date(c.created_at);
     var date=d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     return '<div class="c-item">'+
@@ -1613,7 +1699,11 @@ swClan.addEventListener('click',function(){ setView('clan'); });
       '<span class="c-date">'+date+'</span></div>'+
       (c.target?'<div class="c-on"><b>На:</b> '+esc(c.target)+'</div>':'')+
       '<div class="c-text">'+esc(c.text)+'</div>'+
-      (c.reply?'<div class="c-reply"><b>Ответ админа:</b> '+esc(c.reply)+'</div>':'')+
+      '<div data-thread="'+c.id+'"></div>'+
+      '<div class="thread-form">'+
+        '<input data-pin="'+c.id+'" placeholder="Комментарий...">'+
+        '<button data-psend="'+c.id+'" data-author="'+esc(c.name||'')+'">Отправить</button>'+
+      '</div>'+
       '</div>';
   }
   window.deleteComplaint=async function(id){
@@ -1629,16 +1719,19 @@ swClan.addEventListener('click',function(){ setView('clan'); });
     var target=document.getElementById('compTarget').value.trim();
     var text=document.getElementById('compText').value.trim();
     if(!name||!text){ setCompStatus('Укажи ник и описание проблемы','err'); return; }
+    if(!supabase){ setCompStatus('База недоступна','err'); return; }
     setCompStatus('Отправляем...','');
-    // 1) в Discord
     try{
-      await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({content:'**Жалоба**\nОт: '+name+'\nНа: '+(target||'—')+'\n\n'+text})});
-    }catch(e){}
-    // 2) в Supabase
-    try{
-      var {data,error}=await supabase.from('complaints').insert({name:name,target:target,text:text,status:'open',reply:''});
+      // 1) сохраняем и получаем id
+      var {data,error}=await supabase.from('complaints').insert({name:name,target:target,text:text,status:'open',reply:''}).select('id');
       if(error) throw error;
+      var cid=data && data[0] ? data[0].id : '';
+      // 2) в Discord со ссылкой на жалобу на сайте
+      try{
+        var link='https://hunterxxx225.github.io/yxs222/?ticket='+encodeURIComponent(cid)+'#server';
+        await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({content:'**Новая жалоба**\n**От:** '+name+'\n**На:** '+(target||'—')+'\n\n'+text+'\n\nОткрыть на сайте: '+link})});
+      }catch(e){}
       setCompStatus('Жалоба отправлена','ok');
       document.getElementById('compName').value='';
       document.getElementById('compTarget').value='';
@@ -1646,7 +1739,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
       setTimeout(function(){ setCompStatus('',''); },2500);
       if(isOwner) loadComplaints();
     }catch(e){
-      setCompStatus('Не удалось сохранить, но в Discord ушла','err');
+      setCompStatus('Не удалось сохранить: '+e.message,'err');
     }
   });
 
@@ -1665,7 +1758,23 @@ swClan.addEventListener('click',function(){ setView('clan'); });
       var {data,error}=await supabase.from('complaints').select('*').eq('name',name).order('created_at',{ascending:false});
       if(error) throw error;
       if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Жалоб на этот ник не найдено.</p>'; return; }
-      box.innerHTML=data.map(ticketHtml).join('');
+      box.innerHTML=data.map(function(c){ return ticketHtml(c, name); }).join('');
+      hydrateThreads(box, false);
+      // игрок пишет комментарий
+      box.querySelectorAll('[data-psend]').forEach(function(b){
+        b.addEventListener('click',async function(){
+          var cid=b.dataset.psend;
+          var author=b.dataset.author||name;
+          var inp=box.querySelector('[data-pin="'+cid+'"]');
+          var text=inp?inp.value.trim():'';
+          if(!text) return;
+          var ok=await sendThread(cid, author, text, false);
+          if(!ok){ alert('Не удалось отправить'); return; }
+          inp.value='';
+          var slot=box.querySelector('[data-thread="'+cid+'"]');
+          if(slot){ slot.innerHTML=threadHtml(await fetchThread(cid)); }
+        });
+      });
     }catch(e){ box.innerHTML='<p class="form-status err">Ошибка: '+esc(e.message)+'</p>'; }
   });
 
@@ -1684,6 +1793,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
   restoreSession();
   updateServerNewsUI();
   updateComplaintsUI();
+  if(TICKET_LINK){ setView('server'); }
 </script>
 
 </body>
