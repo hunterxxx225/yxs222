@@ -241,6 +241,11 @@
   .server-rules li{display:flex;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);color:var(--muted);font-size:.96rem}
   .server-rules li:last-child{border-bottom:none}
   .server-rules .r-num{color:var(--red);font-weight:800;min-width:24px}
+  .server-rules li > span:last-child{flex:1;line-height:1.55}
+  .r-pun{display:inline-block;padding:2px 9px;border-radius:999px;border:1px solid var(--line);
+    font-size:.66rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--text);
+    white-space:nowrap;vertical-align:baseline}
+  .r-pun.hard{background:var(--text);color:var(--bg);border-color:var(--text)}
   .s-news-form{margin-bottom:22px}
 
   /* CTA band */
@@ -954,11 +959,13 @@
     <div class="server-rules reveal">
       <h3>Правила сервера</h3>
       <ul>
-        <li><span class="r-num">01</span>Не использовать читы, скрипты и уязвимости. Бан без предупреждений.</li>
-        <li><span class="r-num">02</span>Уважение к игрокам. Токсик, расизм и травля запрещены.</li>
-        <li><span class="r-num">03</span>Греф чужых зданий и воровство из чужих тулкепсов — нарушение.</li>
-        <li><span class="r-num">04</span>Эксплойт карты и багов — причина для бана.</li>
-        <li><span class="r-num">05</span>Вопросы к админам — через Discord. Админы неиммунны к правилам.</li>
+        <li><span class="r-num">01</span><span><b>Читы и сторонний софт.</b> Аимбот, ESP, макросы, любые скрипты и инжекты — <span class="r-pun hard">бан навсегда</span>, без разбана. Смена аккаунта не поможет.</span></li>
+        <li><span class="r-num">02</span><span><b>Игра в тиме с читером.</b> Знал и продолжал играть — <span class="r-pun hard">30 дней</span>. Сдал читера админам — наказания нет.</span></li>
+        <li><span class="r-num">03</span><span><b>Багоюз.</b> Дюп, проход сквозь стены, выход за карту, эксплойты — <span class="r-pun">7 дней</span> и изъятие полученного.</span></li>
+        <li><span class="r-num">04</span><span><b>Лут с читера.</b> Подобранное у читера сдаётся админам. Скрыл — считается тимой с читером.</span></li>
+        <li><span class="r-num">05</span><span><b>Уважение.</b> Оскорбления, травля, расизм — до <span class="r-pun">7 дней</span> по решению админа.</span></li>
+        <li><span class="r-num">06</span><span><b>Чужие постройки.</b> Гриф и воровство из чужих тулкупов — нарушение.</span></li>
+        <li><span class="r-num">07</span><span><b>Апелляции.</b> Только через Discord, с ником и записью. Админы не иммунны к правилам.</span></li>
       </ul>
     </div>
 
@@ -1007,7 +1014,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.8 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.9 · админ</span>
   </div>
 </footer>
 
