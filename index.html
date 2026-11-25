@@ -909,7 +909,7 @@
     <!-- Shop -->
     <div class="shop-sec reveal">
       <h3>Магазин</h3>
-      <p class="shop-sub">Покупаешь — забираешь в игре. Войди через Steam, чтобы мы знали, кому выдавать. Выдача в течение минуты после подтверждения оплаты.</p>
+      <p class="shop-sub">Покупаешь здесь — забираешь в игре командой <b>/shop</b>. Войди через Steam, чтобы покупка привязалась к твоему аккаунту.</p>
       <div class="shop-grid" id="shopGrid"><p style="color:var(--muted)">Загружаем товары...</p></div>
       <div class="balance-box">
         <div class="bb-left">Баланс: <b id="shopBal">—</b></div>
@@ -938,6 +938,7 @@
         <div class="cart-totals" id="cartTotals"></div>
         <div class="modal-actions">
           <button class="btn btn-solid" id="cartCheckout" style="padding:11px 20px;font-size:.8rem">Оформить заказ</button>
+          <button class="btn btn-ghost" id="cartBalance" style="padding:11px 20px;font-size:.8rem">Оплатить с баланса</button>
           <button class="btn btn-ghost" id="cartClose" style="padding:11px 20px;font-size:.8rem">Закрыть</button>
         </div>
         <div class="form-status" id="cartStatus"></div>
@@ -1000,7 +1001,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.4 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v2.5 · админ</span>
   </div>
 </footer>
 
@@ -2286,7 +2287,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
       document.getElementById('promoInput').value='';
       renderCart();
       st.className='form-status ok';
-      st.innerHTML='Заказ <b>№'+r.id+'</b> создан на <b>'+shopMoney(r.total)+'</b>.<br>Переведи сумму админу в Discord и укажи номер заказа — после подтверждения оплаты предметы придут в игру.';
+      st.innerHTML='Заказ <b>№'+r.id+'</b> создан на <b>'+shopMoney(r.total)+'</b>.<br>Переведи сумму админу в Discord и укажи номер заказа — после подтверждения оплаты забери покупку в игре: <b>/shop</b>';
       notifyOrder(r, lines);
       if(isOwner) loadShopOrders();
     }catch(e){
@@ -2294,6 +2295,38 @@ swClan.addEventListener('click',function(){ setView('clan'); });
       st.textContent='Не удалось оформить: '+e.message;
     }
   }
+
+  async function payFromBalance(){
+    var st=document.getElementById('cartStatus');
+    var lines=cartLines();
+    if(!lines.length){ st.className='form-status err'; st.textContent='Корзина пуста'; return; }
+    if(!steamData){ st.className='form-status err'; st.textContent='Войди через Steam'; return; }
+    var payload=lines.map(function(l){ return {id:l.it.id, qty:l.qty}; });
+    st.className='form-status'; st.textContent='Списываем с баланса...';
+    try{
+      var {data,error}=await supabase.rpc('shop_buy',{
+        p_items:payload,
+        p_promo:shopPromo?shopPromo.code:null,
+        p_steamid:steamData.steamid
+      });
+      if(error) throw error;
+      var r=Array.isArray(data)?data[0]:data;
+      shopCart={}; cartSave();
+      shopPromo=null;
+      document.getElementById('promoInput').value='';
+      renderCart();
+      shopBalance=Number(r.balance);
+      paintBalance();
+      st.className='form-status ok';
+      st.innerHTML='Оплачено с баланса: <b>'+shopMoney(r.total)+'</b>. Заказ №'+r.id+'.<br>Забери покупку в игре: <b>/shop</b>';
+      if(isOwner) loadShopOrders();
+    }catch(e){
+      st.className='form-status err';
+      st.textContent=e.message;
+    }
+  }
+  var payBalBtn=document.getElementById('cartBalance');
+  if(payBalBtn) payBalBtn.addEventListener('click',payFromBalance);
 
   function notifyOrder(r, lines){
     try{
