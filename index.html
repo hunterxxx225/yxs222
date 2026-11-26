@@ -504,6 +504,8 @@
   .av-row{display:flex;gap:12px;justify-content:space-between;align-items:baseline;padding:8px 0;
     border-bottom:1px solid rgba(255,255,255,.06);font-size:.84rem;color:var(--text);flex-wrap:wrap}
   .av-row .av-meta{color:var(--muted);font-size:.76rem;word-break:break-word}
+  .admin-complaints .o-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+  .admin-complaints .o-actions .shop-mini{margin-left:0}
 
   /* complaint */
   .complaint-sec{background:var(--panel);border:1px solid rgba(255,60,60,.1);border-radius:16px;padding:30px;margin-top:34px}
@@ -999,6 +1001,12 @@
       </div>
       <div id="avBody"><p style="color:var(--muted)">Загрузка...</p></div>
     </div>
+
+    <!-- Admin: reports -->
+    <div class="admin-complaints reveal" id="adminReports" style="display:none;margin-top:34px">
+      <h3>Репорты игроков</h3>
+      <div id="reportsList"><p style="color:var(--muted)">Репортов нет.</p></div>
+    </div>
   </div>
 </section>
 </div><!-- /serverView -->
@@ -1009,7 +1017,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.1 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.2 · админ</span>
   </div>
 </footer>
 
@@ -1289,6 +1297,7 @@
     if(typeof updateComplaintsUI==='function'){ updateComplaintsUI(); }
     if(typeof loadShopAdmin==='function'){ loadShopAdmin(); }
     if(typeof loadVisitors==='function'){ loadVisitors(); }
+    if(typeof loadReports==='function'){ loadReports(); }
   }
   document.getElementById('adminTrigger').addEventListener('click',function(){
     if(isOwner){ ownerForm.classList.toggle('open'); return; }
@@ -2791,6 +2800,57 @@ swClan.addEventListener('click',function(){ setView('clan'); });
     if(avTabVisits) avTabVisits.classList.remove('active');
     loadAvBody();
   });
+
+  // ============ Админ: репорты ============
+  var REPORT_STATUS={new:'Новый',checking:'На проверке',closed:'Закрыт'};
+
+  async function loadReports(){
+    if(!isOwner||!supabase) return;
+    var panel=document.getElementById('adminReports');
+    if(panel) panel.style.display='block';
+    var list=document.getElementById('reportsList');
+    if(!list) return;
+    try{
+      var {data,error}=await supabase.from('reports').select('*').order('id',{ascending:false}).limit(50);
+      if(error) throw error;
+      if(!data||!data.length){ list.innerHTML='<p style="color:var(--muted)">Репортов нет.</p>'; return; }
+      list.innerHTML=data.map(function(r){
+        var cls=r.status==='closed'?'st-resolved':(r.status==='checking'?'st-progress':'st-open');
+        var acts;
+        if(r.status==='closed'){
+          acts='<button class="shop-mini" onclick="reportAction('+r.id+',\'new\')">Открыть заново</button>';
+        }else{
+          acts='<button class="shop-mini" onclick="reportAction('+r.id+',\'checking\')">Взять</button>'+
+               '<button class="shop-mini" onclick="reportCall('+r.id+')">Вызвать</button>'+
+               '<button class="shop-mini danger" onclick="reportAction('+r.id+',\'closed\')">Закрыть</button>';
+        }
+        return '<div class="c-item"><div class="c-head"><span class="c-who">#'+r.id+' · '+esc(r.target||'—')+'</span>'+
+          '<span class="c-status '+cls+'">'+(REPORT_STATUS[r.status]||r.status)+'</span></div>'+
+          '<div class="c-on">от '+esc(r.nick||r.steamid||'?')+' · '+avDate(r.created_at)+'</div>'+
+          '<div class="c-text">'+esc(r.reason||'')+'</div>'+
+          '<div class="o-actions">'+acts+'</div></div>';
+      }).join('');
+    }catch(e){
+      list.innerHTML='<p class="form-status err">Таблица репортов не создана — выполни yxs-reports.sql</p>';
+    }
+  }
+
+  window.reportAction=async function(id,status){
+    if(!isOwner||!supabase) return;
+    var {error}=await supabase.from('reports').update({status:status}).match({id:id});
+    if(error){ alert(error.message); return; }
+    showToast('Репорт #'+id+' → '+(REPORT_STATUS[status]||status));
+    loadReports();
+  };
+
+  window.reportCall=async function(id){
+    if(!isOwner||!supabase) return;
+    var {error}=await supabase.from('reports')
+      .update({status:'checking',check_requested:true,check_sent:false}).match({id:id});
+    if(error){ alert(error.message); return; }
+    showToast('Вызов уйдёт в игру в течение 20 сек');
+    loadReports();
+  };
 
   // ============ Init ============
   updateMemberButtons();
