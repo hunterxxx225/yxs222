@@ -370,6 +370,11 @@
   .sw-btn.active{background:#fff;color:#0b0b0c;border-color:#fff}
   .views-wrap.server .sw-btn.sb-server{background:#eaeaea;color:#000;border-color:#eaeaea}
   .views-wrap.server .sw-btn.sb-clan{background:transparent;color:#cfcfcf}
+  .view.admin-view{display:none}
+  .views-wrap.admin .view.admin-view{display:block}
+  .views-wrap.admin .view.clan-view,.views-wrap.admin .view.server-view{display:none}
+  .views-wrap.admin .sw-btn.sb-admin,.views-wrap.server .sw-btn.sb-admin{background:#eaeaea;color:#000;border-color:#eaeaea}
+  .views-wrap.admin .sw-btn.sb-clan,.views-wrap.admin .sw-btn.sb-server{background:transparent;color:#cfcfcf}
   /* server view is black&white */
   .view.server-view{background:var(--bg);color:var(--text);min-height:100vh;padding-top:60px}
   .view.server-view .sec-kicker{color:var(--red)}
@@ -755,6 +760,7 @@
     <div class="head-switch">
       <button class="sw-btn sb-clan active" id="swClan">Клан</button>
       <button class="sw-btn sb-server" id="swServer">Сервер</button>
+      <button class="sw-btn sb-admin" id="swAdmin" style="display:none">Репорты</button>
     </div>
     <div class="steam-box" id="steamBox"></div>
     <div class="steam-bal" id="steamBal" style="display:none"></div>
@@ -1002,26 +1008,37 @@
       <div id="avBody"><p style="color:var(--muted)">Загрузка...</p></div>
     </div>
 
-    <!-- Admin: reports -->
-    <div class="admin-complaints reveal" id="adminReports" style="display:none;margin-top:34px">
+    <!-- Admin: reports moved to the "Репорты" tab -->
+  </div>
+</section>
+</div><!-- /serverView -->
+
+<div class="view server-view admin-view" id="adminView">
+<section class="server-sec">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-kicker">Админ</div>
+      <h2>Репорты и проверки</h2>
+      <p>Жалобы игроков, вызовы на проверку и Discord-контакты. Вкладку видит только админ.</p>
+    </div>
+
+    <div class="admin-complaints reveal" id="adminReports">
       <h3>Репорты игроков</h3>
       <div id="reportsList"><p style="color:var(--muted)">Репортов нет.</p></div>
     </div>
 
-    <!-- Admin: checks -->
-    <div class="admin-complaints reveal" id="adminChecks" style="display:none;margin-top:34px">
+    <div class="admin-complaints reveal" id="adminChecks" style="margin-top:34px">
       <h3>Вызовы на проверку</h3>
       <div id="checksList"><p style="color:var(--muted)">Вызовов нет.</p></div>
     </div>
 
-    <!-- Admin: contacts -->
-    <div class="admin-complaints reveal" id="adminContacts" style="display:none;margin-top:34px">
+    <div class="admin-complaints reveal" id="adminContacts" style="margin-top:34px">
       <h3>Discord из игры (/contact)</h3>
       <div id="contactsList"><p style="color:var(--muted)">Пока никто не присылал.</p></div>
     </div>
   </div>
 </section>
-</div><!-- /serverView -->
+</div><!-- /adminView -->
 
 </div><!-- /viewsWrap -->
 
@@ -1029,7 +1046,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.3 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.4 · админ</span>
   </div>
 </footer>
 
@@ -1312,6 +1329,8 @@
     if(typeof loadReports==='function'){ loadReports(); }
     if(typeof loadChecks==='function'){ loadChecks(); }
     if(typeof loadContacts==='function'){ loadContacts(); }
+    if(swAdmin) swAdmin.style.display = isOwner ? 'inline-flex' : 'none';
+    if(!isOwner && currentView==='admin') setView('clan');
   }
   document.getElementById('adminTrigger').addEventListener('click',function(){
     if(isOwner){ ownerForm.classList.toggle('open'); return; }
@@ -1690,22 +1709,31 @@
   var serverView=document.getElementById('serverView');
   var swClan=document.getElementById('swClan');
   var swServer=document.getElementById('swServer');
+  var swAdmin=document.getElementById('swAdmin');
   var currentView='clan';
 
   function setView(v, animate){
+    if(v==='admin' && !isOwner) v='clan';
     currentView=v;
-    if(v==='server'){
-      viewsWrap.classList.add('server');
-      swServer.classList.add('active'); swClan.classList.remove('active');
-      flakeStroke='#ffffff'; flakeDot='#ffffff';
-    }else{
-      viewsWrap.classList.remove('server');
-      swClan.classList.add('active'); swServer.classList.remove('active');
-      flakeStroke='#ff5a5a'; flakeDot='#ff7a1a';
-    }
-    try{ history.replaceState(null,'', v==='server' ? '#server' : '#clan'); }catch(e){}
+
+    viewsWrap.classList.toggle('server', v==='server');
+    viewsWrap.classList.toggle('admin', v==='admin');
+
+    if(swClan) swClan.classList.toggle('active', v==='clan');
+    if(swServer) swServer.classList.toggle('active', v==='server');
+    if(swAdmin) swAdmin.classList.toggle('active', v==='admin');
+
+    if(v==='server' || v==='admin'){ flakeStroke='#ffffff'; flakeDot='#ffffff'; }
+    else { flakeStroke='#ff5a5a'; flakeDot='#ff7a1a'; }
+
+    try{ history.replaceState(null,'', v==='server' ? '#server' : (v==='admin' ? '#reports' : '#clan')); }catch(e){}
     if(typeof paintBalance==='function') paintBalance();
     if(v==='server' && typeof loadShopBalance==='function') loadShopBalance();
+    if(v==='admin'){
+      if(typeof loadReports==='function') loadReports();
+      if(typeof loadChecks==='function') loadChecks();
+      if(typeof loadContacts==='function') loadContacts();
+    }
     window.scrollTo({top:0,behavior:'smooth'});
   }
   function toggleViews(dir){
@@ -1714,8 +1742,9 @@
     else if(dir==='next' && currentView==='clan'){ setView('server'); }
   }
 
-swClan.addEventListener('click',function(){ setView('clan'); });
+  swClan.addEventListener('click',function(){ setView('clan'); });
   swServer.addEventListener('click',function(){ setView('server'); });
+  if(swAdmin) swAdmin.addEventListener('click',function(){ setView('admin'); });
 
   // swipe support
   var touchX=null;
@@ -1734,6 +1763,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
 
   // start on hash if #server
   if(location.hash==='#server'){ setView('server'); }
+  else if(location.hash==='#reports'){ setView('admin'); }
   else { setView('clan'); }
 
   // ============ Complaints ============
