@@ -1024,7 +1024,15 @@
       <p>Жалобы игроков, вызовы на проверку и Discord-контакты. Вкладку видит только админ.</p>
     </div>
 
-    <div class="admin-complaints reveal" id="adminReports">
+    <div class="admin-complaints reveal" id="adminClear">
+      <h3>Очистка</h3>
+      <div class="admin-grid">
+        <button class="btn btn-solid" id="clearAll" style="padding:9px 14px;font-size:.76rem">Очистить все репорты и вызовы</button>
+      </div>
+      <div class="form-status" id="clearStatus"></div>
+    </div>
+
+    <div class="admin-complaints reveal" id="adminReports" style="margin-top:34px">
       <h3>Репорты игроков</h3>
       <div id="reportsList"><p style="color:var(--muted)">Репортов нет.</p></div>
     </div>
@@ -1070,7 +1078,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.0 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.1 · админ</span>
   </div>
 </footer>
 
@@ -3141,6 +3149,36 @@
   if(chatLoadBtn) chatLoadBtn.addEventListener('click',loadMessages);
   var chatTextField=document.getElementById('chatText');
   if(chatTextField) chatTextField.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); sendChat(); } });
+
+  async function clearAll(){
+    if(!isOwner||!supabase) return;
+    var st=document.getElementById('clearStatus');
+    if(!confirm('Удалить все репорты и вызовы? Действие необратимо.')) return;
+
+    st.className='form-status';
+    st.textContent='Закрываю экраны у игроков и удаляю...';
+
+    var closeRes=await supabase.from('checks').update({status:'closed',shown:true}).gte('id',0);
+    if(closeRes.error){ st.className='form-status err'; st.textContent=closeRes.error.message; return; }
+
+    var delRep=await supabase.from('reports').delete().gte('id',0);
+    if(delRep.error){ st.className='form-status err'; st.textContent=delRep.error.message; return; }
+
+    loadReports();
+    loadChecks();
+
+    setTimeout(async function(){
+      var delChk=await supabase.from('checks').delete().gte('id',0);
+      if(delChk.error){ st.className='form-status err'; st.textContent=delChk.error.message; return; }
+      st.className='form-status ok';
+      st.textContent='Репорты и вызовы удалены';
+      showToast('Все репорты и вызовы удалены');
+      loadChecks();
+    },8000);
+  }
+
+  var clearAllBtn=document.getElementById('clearAll');
+  if(clearAllBtn) clearAllBtn.addEventListener('click',clearAll);
 
   window.punAdd=async function(){
     if(!isOwner||!supabase) return;
