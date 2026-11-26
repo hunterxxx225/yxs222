@@ -1007,6 +1007,18 @@
       <h3>Репорты игроков</h3>
       <div id="reportsList"><p style="color:var(--muted)">Репортов нет.</p></div>
     </div>
+
+    <!-- Admin: checks -->
+    <div class="admin-complaints reveal" id="adminChecks" style="display:none;margin-top:34px">
+      <h3>Вызовы на проверку</h3>
+      <div id="checksList"><p style="color:var(--muted)">Вызовов нет.</p></div>
+    </div>
+
+    <!-- Admin: contacts -->
+    <div class="admin-complaints reveal" id="adminContacts" style="display:none;margin-top:34px">
+      <h3>Discord из игры (/contact)</h3>
+      <div id="contactsList"><p style="color:var(--muted)">Пока никто не присылал.</p></div>
+    </div>
   </div>
 </section>
 </div><!-- /serverView -->
@@ -1017,7 +1029,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.2 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.3 · админ</span>
   </div>
 </footer>
 
@@ -1298,6 +1310,8 @@
     if(typeof loadShopAdmin==='function'){ loadShopAdmin(); }
     if(typeof loadVisitors==='function'){ loadVisitors(); }
     if(typeof loadReports==='function'){ loadReports(); }
+    if(typeof loadChecks==='function'){ loadChecks(); }
+    if(typeof loadContacts==='function'){ loadContacts(); }
   }
   document.getElementById('adminTrigger').addEventListener('click',function(){
     if(isOwner){ ownerForm.classList.toggle('open'); return; }
@@ -2845,12 +2859,78 @@ swClan.addEventListener('click',function(){ setView('clan'); });
 
   window.reportCall=async function(id){
     if(!isOwner||!supabase) return;
-    var {error}=await supabase.from('reports')
-      .update({status:'checking',check_requested:true,check_sent:false}).match({id:id});
-    if(error){ alert(error.message); return; }
-    showToast('Вызов уйдёт в игру в течение 20 сек');
+    var res=await supabase.from('reports').select('*').match({id:id}).single();
+    if(res.error){ alert(res.error.message); return; }
+    var r=res.data||{};
+    var ins=await supabase.from('checks').insert({
+      steamid:r.target_steamid||'',
+      nick:r.target||'',
+      reason:r.reason||''
+    });
+    if(ins.error){ alert(ins.error.message); return; }
+    await supabase.from('reports').update({status:'checking'}).match({id:id});
+    showToast('Вызов создан — игрок увидит экран в течение 5 сек');
     loadReports();
+    loadChecks();
   };
+
+  async function loadChecks(){
+    if(!isOwner||!supabase) return;
+    var panel=document.getElementById('adminChecks');
+    if(panel) panel.style.display='block';
+    var box=document.getElementById('checksList');
+    if(!box) return;
+    try{
+      var {data,error}=await supabase.from('checks').select('*').order('id',{ascending:false}).limit(30);
+      if(error) throw error;
+      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Вызовов нет.</p>'; return; }
+      box.innerHTML=data.map(function(c){
+        var cls=c.status==='closed'?'st-resolved':(c.status==='active'?'st-progress':'st-open');
+        var label=c.status==='closed'?'Закрыт':(c.status==='active'?'Показан':'Скрыт');
+        var acts='<button class="shop-mini" onclick="checkAction('+c.id+',\'active\')">Показать</button>';
+        if(c.status!=='closed'){
+          acts+='<button class="shop-mini" onclick="checkAction('+c.id+',\'hidden\')">Убрать</button>'+
+                '<button class="shop-mini danger" onclick="checkAction('+c.id+',\'closed\')">Закрыть</button>';
+        }
+        return '<div class="c-item"><div class="c-head"><span class="c-who">#'+c.id+' · '+esc(c.nick||c.steamid||'—')+'</span>'+
+          '<span class="c-status '+cls+'">'+label+'</span></div>'+
+          '<div class="c-on">'+esc(c.reason||'без причины')+' · '+avDate(c.created_at)+'</div>'+
+          '<div class="o-actions">'+acts+'</div></div>';
+      }).join('');
+    }catch(e){
+      box.innerHTML='<p class="form-status err">Таблица checks не создана — выполни yxs-checks.sql</p>';
+    }
+  }
+
+  window.checkAction=async function(id,status){
+    if(!isOwner||!supabase) return;
+    var patch={status:status};
+    if(status==='active') patch.shown=false;
+    var {error}=await supabase.from('checks').update(patch).match({id:id});
+    if(error){ alert(error.message); return; }
+    showToast('Вызов #'+id+' → '+(status==='active'?'показать':(status==='hidden'?'убрать':'закрыт')));
+    loadChecks();
+  };
+
+  async function loadContacts(){
+    if(!isOwner||!supabase) return;
+    var panel=document.getElementById('adminContacts');
+    if(panel) panel.style.display='block';
+    var box=document.getElementById('contactsList');
+    if(!box) return;
+    try{
+      var {data,error}=await supabase.from('contacts')
+        .select('id,nick,steamid,discord,created_at').order('id',{ascending:false}).limit(50);
+      if(error) throw error;
+      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Пока никто не присылал.</p>'; return; }
+      box.innerHTML=data.map(function(c){
+        return '<div class="av-row"><span>'+esc(c.nick||'?')+' · <b>'+esc(c.discord)+'</b></span>'+
+          '<span class="av-meta">'+esc(c.steamid||'')+' · '+avDate(c.created_at)+'</span></div>';
+      }).join('');
+    }catch(e){
+      box.innerHTML='<p class="form-status err">Таблица contacts не создана — выполни yxs-checks.sql</p>';
+    }
+  }
 
   // ============ Init ============
   updateMemberButtons();
