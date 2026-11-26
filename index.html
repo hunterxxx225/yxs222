@@ -370,7 +370,9 @@
   .sw-btn.active{background:#fff;color:#0b0b0c;border-color:#fff}
   .views-wrap.server .sw-btn.sb-server{background:#eaeaea;color:#000;border-color:#eaeaea}
   .views-wrap.server .sw-btn.sb-clan{background:transparent;color:#cfcfcf}
-  .view.admin-view{display:none}
+  .view.admin-view{display:none;background:#0a0a0b;color:#f0f0f0;min-height:100vh;padding-top:60px;
+    --red:#e6e6e6;--red-bright:#ffffff;--red-dark:#999;--ember:#cccccc;--glow:rgba(255,255,255,.25);
+    --panel:#151516;--bg2:#0f0f10;--line:#3a3a3a;--text:#f5f5f5;--muted:#9a9a9a}
   .views-wrap.admin .view.admin-view{display:block}
   .views-wrap.admin .view.clan-view,.views-wrap.admin .view.server-view{display:none}
   .views-wrap.admin .sw-btn.sb-admin,.views-wrap.server .sw-btn.sb-admin{background:#eaeaea;color:#000;border-color:#eaeaea}
@@ -1013,7 +1015,7 @@
 </section>
 </div><!-- /serverView -->
 
-<div class="view server-view admin-view" id="adminView">
+<div class="view admin-view" id="adminView">
 <section class="server-sec">
   <div class="container">
     <div class="sec-head reveal">
@@ -1046,7 +1048,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.4 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.5 · админ</span>
   </div>
 </footer>
 
@@ -1730,6 +1732,8 @@
     if(typeof paintBalance==='function') paintBalance();
     if(v==='server' && typeof loadShopBalance==='function') loadShopBalance();
     if(v==='admin'){
+      var av=document.getElementById('adminView');
+      if(av){ av.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); }); }
       if(typeof loadReports==='function') loadReports();
       if(typeof loadChecks==='function') loadChecks();
       if(typeof loadContacts==='function') loadContacts();
