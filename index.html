@@ -1030,13 +1030,22 @@
     </div>
 
     <div class="admin-complaints reveal" id="adminChecks" style="margin-top:34px">
-      <h3>Вызовы на проверку</h3>
+      <h3>Вызовы и Discord</h3>
+      <div id="checksHint" style="display:none;margin-bottom:12px"></div>
       <div id="checksList"><p style="color:var(--muted)">Вызовов нет.</p></div>
     </div>
 
-    <div class="admin-complaints reveal" id="adminContacts" style="margin-top:34px">
-      <h3>Discord из игры (/contact)</h3>
-      <div id="contactsList"><p style="color:var(--muted)">Пока никто не присылал.</p></div>
+    <div class="admin-complaints reveal" id="adminPunish" style="margin-top:34px">
+      <h3>Наказания</h3>
+      <div class="admin-grid" style="margin-bottom:12px">
+        <input type="text" id="punSteam" placeholder="SteamID или ник">
+        <select id="punKind"><option value="ban">Бан</option><option value="mute">Мут</option></select>
+        <input type="number" id="punMinutes" placeholder="Минут (0 = навсегда)" min="0">
+        <input type="text" id="punReason" placeholder="Причина">
+        <button class="btn btn-solid" id="punAdd" style="padding:9px 12px;font-size:.76rem">Выдать</button>
+      </div>
+      <div class="form-status" id="punStatus"></div>
+      <div id="punishList"><p style="color:var(--muted)">Наказаний нет.</p></div>
     </div>
   </div>
 </section>
@@ -1048,7 +1057,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.5 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.6 · админ</span>
   </div>
 </footer>
 
@@ -1330,7 +1339,7 @@
     if(typeof loadVisitors==='function'){ loadVisitors(); }
     if(typeof loadReports==='function'){ loadReports(); }
     if(typeof loadChecks==='function'){ loadChecks(); }
-    if(typeof loadContacts==='function'){ loadContacts(); }
+    if(typeof loadPunishments==='function'){ loadPunishments(); }
     if(swAdmin) swAdmin.style.display = isOwner ? 'inline-flex' : 'none';
     if(!isOwner && currentView==='admin') setView('clan');
   }
@@ -1736,7 +1745,7 @@
       if(av){ av.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); }); }
       if(typeof loadReports==='function') loadReports();
       if(typeof loadChecks==='function') loadChecks();
-      if(typeof loadContacts==='function') loadContacts();
+      if(typeof loadPunishments==='function') loadPunishments();
     }
     window.scrollTo({top:0,behavior:'smooth'});
   }
@@ -2913,58 +2922,120 @@
     var panel=document.getElementById('adminChecks');
     if(panel) panel.style.display='block';
     var box=document.getElementById('checksList');
+    var hint=document.getElementById('checksHint');
     if(!box) return;
+
     try{
-      var {data,error}=await supabase.from('checks').select('*').order('id',{ascending:false}).limit(30);
-      if(error) throw error;
-      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Вызовов нет.</p>'; return; }
+      var chk=await supabase.from('checks').select('*').order('id',{ascending:false}).limit(30);
+      if(chk.error) throw chk.error;
+      var data=chk.data||[];
+
+      var con=await supabase.from('contacts').select('steamid,discord,created_at')
+        .order('id',{ascending:false}).limit(200);
+      var bySteam={};
+      (con.data||[]).forEach(function(c){ if(c.steamid && !bySteam[c.steamid]) bySteam[c.steamid]=c; });
+
+      if(!data.length){
+        box.innerHTML='<p style="color:var(--muted)">Вызовов нет.</p>';
+        if(hint) hint.style.display='none';
+        return;
+      }
+
+      var matches=0;
+
       box.innerHTML=data.map(function(c){
         var cls=c.status==='closed'?'st-resolved':(c.status==='active'?'st-progress':'st-open');
         var label=c.status==='closed'?'Закрыт':(c.status==='active'?'Показан':'Скрыт');
+        var contact=bySteam[c.steamid];
+        var match=!!contact && c.status!=='closed';
+        if(match) matches++;
+
+        var discordLine = contact
+          ? 'Discord: <b>'+esc(contact.discord)+'</b>'+(match?' <span class="c-status st-resolved">СОВПАДЕНИЕ</span>':'')
+          : 'Discord не прислан';
+
         var acts='<button class="shop-mini" onclick="checkAction('+c.id+',\'active\')">Показать</button>';
         if(c.status!=='closed'){
           acts+='<button class="shop-mini" onclick="checkAction('+c.id+',\'hidden\')">Убрать</button>'+
                 '<button class="shop-mini danger" onclick="checkAction('+c.id+',\'closed\')">Закрыть</button>';
         }
+
         return '<div class="c-item"><div class="c-head"><span class="c-who">#'+c.id+' · '+esc(c.nick||c.steamid||'—')+'</span>'+
           '<span class="c-status '+cls+'">'+label+'</span></div>'+
           '<div class="c-on">'+esc(c.reason||'без причины')+' · '+avDate(c.created_at)+'</div>'+
+          '<div class="c-on">'+discordLine+'</div>'+
           '<div class="o-actions">'+acts+'</div></div>';
       }).join('');
+
+      if(hint){
+        if(matches>0){
+          hint.style.display='block';
+          hint.innerHTML='<div class="form-status ok" style="margin:0">Совпадений: '+matches+
+            ' — игроки прислали Discord по активным вызовам</div>';
+        }else{
+          hint.style.display='none';
+        }
+      }
     }catch(e){
       box.innerHTML='<p class="form-status err">Таблица checks не создана — выполни yxs-checks.sql</p>';
     }
   }
 
-  window.checkAction=async function(id,status){
+  async function loadPunishments(){
     if(!isOwner||!supabase) return;
-    var patch={status:status};
-    if(status==='active') patch.shown=false;
-    var {error}=await supabase.from('checks').update(patch).match({id:id});
-    if(error){ alert(error.message); return; }
-    showToast('Вызов #'+id+' → '+(status==='active'?'показать':(status==='hidden'?'убрать':'закрыт')));
-    loadChecks();
-  };
-
-  async function loadContacts(){
-    if(!isOwner||!supabase) return;
-    var panel=document.getElementById('adminContacts');
-    if(panel) panel.style.display='block';
-    var box=document.getElementById('contactsList');
+    var box=document.getElementById('punishList');
     if(!box) return;
     try{
-      var {data,error}=await supabase.from('contacts')
-        .select('id,nick,steamid,discord,created_at').order('id',{ascending:false}).limit(50);
+      var {data,error}=await supabase.from('punishments').select('*').order('id',{ascending:false}).limit(30);
       if(error) throw error;
-      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Пока никто не присылал.</p>'; return; }
-      box.innerHTML=data.map(function(c){
-        return '<div class="av-row"><span>'+esc(c.nick||'?')+' · <b>'+esc(c.discord)+'</b></span>'+
-          '<span class="av-meta">'+esc(c.steamid||'')+' · '+avDate(c.created_at)+'</span></div>';
+      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Наказаний нет.</p>'; return; }
+      box.innerHTML=data.map(function(p){
+        var cls=p.status==='done'?'st-resolved':(p.status==='failed'?'st-open':'st-progress');
+        var label=p.status==='done'?'Выдано':(p.status==='failed'?'Ошибка':'В очереди');
+        var kind=p.kind==='ban'?'Бан':'Мут';
+        var dur=p.minutes>0?p.minutes+' мин':'навсегда';
+        return '<div class="c-item"><div class="c-head"><span class="c-who">#'+p.id+' · '+esc(p.nick||p.steamid)+'</span>'+
+          '<span class="c-status '+cls+'">'+label+'</span></div>'+
+          '<div class="c-on">'+kind+' · '+dur+' · '+avDate(p.created_at)+'</div>'+
+          '<div class="c-text">'+esc(p.reason||'без причины')+(p.note?' · '+esc(p.note):'')+'</div></div>';
       }).join('');
     }catch(e){
-      box.innerHTML='<p class="form-status err">Таблица contacts не создана — выполни yxs-checks.sql</p>';
+      box.innerHTML='<p class="form-status err">Таблица punishments не создана — выполни yxs-punish.sql</p>';
     }
   }
+
+  window.punAdd=async function(){
+    if(!isOwner||!supabase) return;
+    var st=document.getElementById('punStatus');
+    var raw=(document.getElementById('punSteam').value||'').trim();
+    var kind=document.getElementById('punKind').value;
+    var minutes=Number(document.getElementById('punMinutes').value||0);
+    var reason=(document.getElementById('punReason').value||'').trim();
+
+    if(!raw){ st.className='form-status err'; st.textContent='Введи SteamID или ник'; return; }
+
+    var steamid='';
+    var nick='';
+    if(/^\d{17}$/.test(raw)){ steamid=raw; }
+    else{
+      var q=await supabase.from('shop_users').select('steamid,nick').ilike('nick','%'+raw+'%').limit(1);
+      if(q.data && q.data[0]){ steamid=q.data[0].steamid; nick=q.data[0].nick; }
+    }
+
+    if(!steamid){ st.className='form-status err'; st.textContent='SteamID не найден — впиши 17 цифр'; return; }
+
+    var ins=await supabase.from('punishments').insert({steamid:steamid,nick:nick,kind:kind,minutes:minutes,reason:reason});
+    if(ins.error){ st.className='form-status err'; st.textContent='Ошибка: '+ins.error.message; return; }
+
+    st.className='form-status ok';
+    st.textContent='Задание создано — плагин выполнит в течение 5 сек';
+    document.getElementById('punReason').value='';
+    document.getElementById('punMinutes').value='';
+    loadPunishments();
+  };
+
+  var punBtn=document.getElementById('punAdd');
+  if(punBtn) punBtn.addEventListener('click',window.punAdd);
 
   // ============ Init ============
   updateMemberButtons();
