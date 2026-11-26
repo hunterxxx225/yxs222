@@ -1070,7 +1070,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.9 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.0 · админ</span>
   </div>
 </footer>
 
@@ -2916,6 +2916,22 @@
     loadReports();
   };
 
+  async function logCheck(checkId,steamid,nick,action,note){
+    try{
+      await supabase.from('check_log').insert({check_id:checkId||null,steamid:steamid||'',nick:nick||'',action:action||'',note:note||''});
+    }catch(e){}
+  }
+
+  window.checkAction=async function(id,status){
+    if(!isOwner||!supabase) return;
+    var patch={status:status,shown:status!=='active'};
+    var {error}=await supabase.from('checks').update(patch).match({id:id});
+    if(error){ alert(error.message); return; }
+    if(status==='closed') await logCheck(id,null,null,'решение: закрыт',null);
+    showToast('Вызов #'+id+' → '+(status==='active'?'показать':(status==='hidden'?'убрать':'закрыть')));
+    loadChecks();
+  };
+
   window.reportCall=async function(id){
     if(!isOwner||!supabase) return;
     var res=await supabase.from('reports').select('*').match({id:id}).single();
@@ -2925,8 +2941,9 @@
       steamid:r.target_steamid||'',
       nick:r.target||'',
       reason:r.reason||''
-    });
+    }).select('id').single();
     if(ins.error){ alert(ins.error.message); return; }
+    await logCheck(ins.data?ins.data.id:null, r.target_steamid, r.target, 'вызов создан', r.reason);
     await supabase.from('reports').update({status:'checking'}).match({id:id});
     await supabase.from('broadcasts').insert({text:'Игрок '+(r.target||r.target_steamid||'')+' вызван на проверку. Причина: '+(r.reason||'—')});
     showToast('Вызов создан — игрок увидит экран в течение 5 сек');
@@ -3052,6 +3069,7 @@
       reason:'чит: '+(r.reason||'')
     });
     if(ins.error){ alert(ins.error.message); return; }
+    await logCheck(null, r.target_steamid, r.target, 'решение: бан', r.reason);
     await supabase.from('reports').update({status:'closed'}).match({id:id});
     showToast('Бан отправлен в игру');
     loadPunishments(); loadReports();
@@ -3066,6 +3084,7 @@
     if(!confirm('Отметить '+(c.nick||c.steamid||'игрока')+' как чистого?')) return;
     var upd=await supabase.from('checks').update({status:'closed'}).match({id:id});
     if(upd.error){ alert(upd.error.message); return; }
+    await logCheck(id, c.steamid, c.nick, 'решение: чист', null);
     if(c.steamid){
       await supabase.from('reports').update({status:'closed'}).eq('target_steamid',c.steamid).neq('status','closed');
     }
