@@ -1057,7 +1057,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.6 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.7 · админ</span>
   </div>
 </footer>
 
@@ -2883,6 +2883,7 @@
         }
         return '<div class="c-item"><div class="c-head"><span class="c-who">#'+r.id+' · '+esc(r.target||'—')+'</span>'+
           '<span class="c-status '+cls+'">'+(REPORT_STATUS[r.status]||r.status)+'</span></div>'+
+          '<div class="c-on">на кого: SteamID '+(r.target_steamid? '<b>'+esc(r.target_steamid)+'</b>' : '<span style="color:var(--muted)">неизвестен</span>')+'</div>'+
           '<div class="c-on">от '+esc(r.nick||r.steamid||'?')+' · '+avDate(r.created_at)+'</div>'+
           '<div class="c-text">'+esc(r.reason||'')+'</div>'+
           '<div class="o-actions">'+acts+'</div></div>';
@@ -2962,7 +2963,7 @@
 
         return '<div class="c-item"><div class="c-head"><span class="c-who">#'+c.id+' · '+esc(c.nick||c.steamid||'—')+'</span>'+
           '<span class="c-status '+cls+'">'+label+'</span></div>'+
-          '<div class="c-on">'+esc(c.reason||'без причины')+' · '+avDate(c.created_at)+'</div>'+
+          '<div class="c-on">SteamID: '+(c.steamid? esc(c.steamid) : '<span style="color:var(--muted)">неизвестен</span>')+' · '+esc(c.reason||'без причины')+' · '+avDate(c.created_at)+'</div>'+
           '<div class="c-on">'+discordLine+'</div>'+
           '<div class="o-actions">'+acts+'</div></div>';
       }).join('');
