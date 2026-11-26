@@ -494,6 +494,17 @@
   .shop-mini:hover{background:var(--text);color:var(--bg)}
   .shop-mini.danger:hover{background:var(--red);color:var(--bg)}
 
+  /* админ: посетители и регистрации */
+  .av-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+  .av-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .av-tab{padding:8px 16px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--muted);
+    font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:.2s}
+  .av-tab:hover{border-color:var(--text);color:var(--text)}
+  .av-tab.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+  .av-row{display:flex;gap:12px;justify-content:space-between;align-items:baseline;padding:8px 0;
+    border-bottom:1px solid rgba(255,255,255,.06);font-size:.84rem;color:var(--text);flex-wrap:wrap}
+  .av-row .av-meta{color:var(--muted);font-size:.76rem;word-break:break-word}
+
   /* complaint */
   .complaint-sec{background:var(--panel);border:1px solid rgba(255,60,60,.1);border-radius:16px;padding:30px;margin-top:34px}
   .complaint-sec h3{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:4px}
@@ -977,6 +988,17 @@
       <h3>Жалобы (для админа)</h3>
       <div id="complaintsList"><p style="color:var(--muted)">Жалоб нет.</p></div>
     </div>
+
+    <!-- Admin: visitors + registrations -->
+    <div class="admin-complaints reveal" id="adminVisits" style="display:none;margin-top:34px">
+      <h3>Посетители и регистрации</h3>
+      <div class="av-stats" id="avStats"></div>
+      <div class="av-tabs">
+        <button class="av-tab active" id="avTabVisits">Посетители</button>
+        <button class="av-tab" id="avTabUsers">Зарегистрировались</button>
+      </div>
+      <div id="avBody"><p style="color:var(--muted)">Загрузка...</p></div>
+    </div>
   </div>
 </section>
 </div><!-- /serverView -->
@@ -987,7 +1009,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.0 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.1 · админ</span>
   </div>
 </footer>
 
@@ -1266,6 +1288,7 @@
     if(typeof updateServerNewsUI==='function'){ updateServerNewsUI(); }
     if(typeof updateComplaintsUI==='function'){ updateComplaintsUI(); }
     if(typeof loadShopAdmin==='function'){ loadShopAdmin(); }
+    if(typeof loadVisitors==='function'){ loadVisitors(); }
   }
   document.getElementById('adminTrigger').addEventListener('click',function(){
     if(isOwner){ ownerForm.classList.toggle('open'); return; }
@@ -2676,6 +2699,99 @@ swClan.addEventListener('click',function(){ setView('clan'); });
     });
   }
 
+  // ============ Админ: посетители и регистрации ============
+  var avTab='visits';
+
+  function avDate(iso){
+    try{ return new Date(iso).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+    catch(e){ return iso||''; }
+  }
+
+  async function trackVisit(){
+    if(!supabase) return;
+    try{ if(sessionStorage.getItem('yxs_visit')) return; sessionStorage.setItem('yxs_visit','1'); }catch(e){}
+    try{
+      await supabase.from('site_visits').insert({
+        path:(location.pathname+location.hash).slice(0,120),
+        ref:(document.referrer||'').slice(0,200),
+        ua:(navigator.userAgent||'').slice(0,200),
+        steamid: steamData?steamData.steamid:''
+      });
+    }catch(e){}
+  }
+
+  async function loadVisitors(){
+    if(!isOwner||!supabase) return;
+    var box=document.getElementById('adminVisits');
+    if(box) box.style.display='block';
+    loadAvStats();
+    loadAvBody();
+  }
+
+  async function loadAvStats(){
+    var el=document.getElementById('avStats');
+    if(!el) return;
+    try{
+      var start=new Date(); start.setHours(0,0,0,0);
+      var all=await supabase.from('site_visits').select('id',{count:'exact',head:true});
+      var today=await supabase.from('site_visits').select('id',{count:'exact',head:true}).gte('created_at',start.toISOString());
+      var regs=await supabase.from('shop_users').select('steamid',{count:'exact',head:true});
+      if(all.error||today.error) throw (all.error||today.error);
+      el.innerHTML=
+        '<div class="s-card"><div class="s-label">Визитов всего</div><div class="s-val">'+(all.count||0)+'</div></div>'+
+        '<div class="s-card"><div class="s-label">Сегодня</div><div class="s-val">'+(today.count||0)+'</div></div>'+
+        '<div class="s-card"><div class="s-label">Steam-аккаунтов</div><div class="s-val">'+((regs&&regs.count)||0)+'</div></div>';
+    }catch(e){
+      el.innerHTML='<p class="form-status err">Таблица визитов не создана — выполни yxs-visits.sql</p>';
+    }
+  }
+
+  async function loadAvBody(){
+    var box=document.getElementById('avBody');
+    if(!box) return;
+    box.innerHTML='<p style="color:var(--muted)">Загрузка...</p>';
+    try{
+      if(avTab==='visits'){
+        var {data,error}=await supabase.from('site_visits').select('*').order('id',{ascending:false}).limit(60);
+        if(error) throw error;
+        if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Визитов пока нет.</p>'; return; }
+        box.innerHTML=data.map(function(v){
+          var ref='';
+          try{ ref=v.ref? new URL(v.ref).hostname : ''; }catch(e){ ref=v.ref||''; }
+          var who=v.steamid? 'Steam '+v.steamid : 'гость';
+          return '<div class="av-row"><span>'+avDate(v.created_at)+' · '+esc(who)+'</span>'+
+            '<span class="av-meta">'+esc(v.path||'')+(ref?' ← '+esc(ref):'')+'</span></div>';
+        }).join('');
+      }else{
+        var r=await supabase.from('shop_users').select('steamid,nick,balance,last_login').order('last_login',{ascending:false}).limit(100);
+        if(r.error) throw r.error;
+        var users=r.data||[];
+        if(!users.length){ box.innerHTML='<p style="color:var(--muted)">Пока никто не входил через Steam.</p>'; return; }
+        box.innerHTML=users.map(function(u){
+          return '<div class="av-row"><span>'+esc(u.nick||'без ника')+' · '+esc(u.steamid)+'</span>'+
+            '<span class="av-meta">'+shopMoney(u.balance)+' · '+avDate(u.last_login)+'</span></div>';
+        }).join('');
+      }
+    }catch(e){
+      box.innerHTML='<p class="form-status err">Ошибка: '+esc(e.message)+'</p>';
+    }
+  }
+
+  var avTabVisits=document.getElementById('avTabVisits');
+  var avTabUsers=document.getElementById('avTabUsers');
+  if(avTabVisits) avTabVisits.addEventListener('click',function(){
+    avTab='visits';
+    avTabVisits.classList.add('active');
+    if(avTabUsers) avTabUsers.classList.remove('active');
+    loadAvBody();
+  });
+  if(avTabUsers) avTabUsers.addEventListener('click',function(){
+    avTab='users';
+    avTabUsers.classList.add('active');
+    if(avTabVisits) avTabVisits.classList.remove('active');
+    loadAvBody();
+  });
+
   // ============ Init ============
   updateMemberButtons();
   loadPosts();
@@ -2692,6 +2808,7 @@ swClan.addEventListener('click',function(){ setView('clan'); });
   if(isOwner) loadShopAdmin();
   shopRegister();
   loadShopBalance();
+  trackVisit();
 </script>
 
 </body>
