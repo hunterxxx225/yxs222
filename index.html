@@ -1035,6 +1035,18 @@
       <div id="checksList"><p style="color:var(--muted)">Вызовов нет.</p></div>
     </div>
 
+    <div class="admin-complaints reveal" id="adminChat" style="margin-top:34px">
+      <h3>Чат с игроком</h3>
+      <div class="admin-grid" style="margin-bottom:12px">
+        <input type="text" id="chatSteam" placeholder="SteamID игрока">
+        <input type="text" id="chatText" placeholder="Сообщение в чат раста">
+        <button class="btn btn-solid" id="chatSend" style="padding:9px 12px;font-size:.76rem">Отправить</button>
+        <button class="btn btn-ghost" id="chatLoad" style="padding:9px 12px;font-size:.76rem">Переписка</button>
+      </div>
+      <div class="form-status" id="chatStatus"></div>
+      <div id="chatLog"><p style="color:var(--muted)">Введи SteamID и нажми «Переписка».</p></div>
+    </div>
+
     <div class="admin-complaints reveal" id="adminPunish" style="margin-top:34px">
       <h3>Наказания</h3>
       <div class="admin-grid" style="margin-bottom:12px">
@@ -1057,7 +1069,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.7 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v3.8 · админ</span>
   </div>
 </footer>
 
@@ -1340,6 +1352,7 @@
     if(typeof loadReports==='function'){ loadReports(); }
     if(typeof loadChecks==='function'){ loadChecks(); }
     if(typeof loadPunishments==='function'){ loadPunishments(); }
+    if(typeof startRealtime==='function'){ startRealtime(); }
     if(swAdmin) swAdmin.style.display = isOwner ? 'inline-flex' : 'none';
     if(!isOwner && currentView==='admin') setView('clan');
   }
@@ -2879,6 +2892,7 @@
         }else{
           acts='<button class="shop-mini" onclick="reportAction('+r.id+',\'checking\')">Взять</button>'+
                '<button class="shop-mini" onclick="reportCall('+r.id+')">Вызвать</button>'+
+               '<button class="shop-mini danger" onclick="reportBan('+r.id+')">Бан</button>'+
                '<button class="shop-mini danger" onclick="reportAction('+r.id+',\'closed\')">Закрыть</button>';
         }
         return '<div class="c-item"><div class="c-head"><span class="c-who">#'+r.id+' · '+esc(r.target||'—')+'</span>'+
@@ -2913,6 +2927,7 @@
     });
     if(ins.error){ alert(ins.error.message); return; }
     await supabase.from('reports').update({status:'checking'}).match({id:id});
+    await supabase.from('broadcasts').insert({text:'Игрок '+(r.target||r.target_steamid||'')+' вызван на проверку. Причина: '+(r.reason||'—')});
     showToast('Вызов создан — игрок увидит экран в течение 5 сек');
     loadReports();
     loadChecks();
@@ -2956,8 +2971,12 @@
           : 'Discord не прислан';
 
         var acts='<button class="shop-mini" onclick="checkAction('+c.id+',\'active\')">Показать</button>';
+        if(c.steamid){
+          acts+='<button class="shop-mini" onclick="chatFor(\''+esc(c.steamid)+'\')">Чат</button>';
+        }
         if(c.status!=='closed'){
           acts+='<button class="shop-mini" onclick="checkAction('+c.id+',\'hidden\')">Убрать</button>'+
+                '<button class="shop-mini" onclick="checkClean('+c.id+')">Чист</button>'+
                 '<button class="shop-mini danger" onclick="checkAction('+c.id+',\'closed\')">Закрыть</button>';
         }
 
@@ -3004,6 +3023,104 @@
       box.innerHTML='<p class="form-status err">Таблица punishments не создана — выполни yxs-punish.sql</p>';
     }
   }
+
+  // ============ Realtime ============
+  var rtChannel=null;
+  function startRealtime(){
+    if(!isOwner||!supabase||rtChannel) return;
+    try{
+      rtChannel=supabase.channel('yxs-admin-rt')
+        .on('postgres_changes',{event:'*',schema:'public',table:'checks'},function(){ loadChecks(); })
+        .on('postgres_changes',{event:'*',schema:'public',table:'reports'},function(){ loadReports(); })
+        .on('postgres_changes',{event:'*',schema:'public',table:'punishments'},function(){ loadPunishments(); })
+        .on('postgres_changes',{event:'*',schema:'public',table:'messages'},function(){ if(chatSteam){ loadMessages(); } })
+        .subscribe();
+    }catch(e){}
+  }
+
+  // ============ Бан из репорта ============
+  window.reportBan=async function(id){
+    if(!isOwner||!supabase) return;
+    var res=await supabase.from('reports').select('*').match({id:id}).single();
+    if(res.error){ alert(res.error.message); return; }
+    var r=res.data||{};
+    if(!r.target_steamid){ alert('У репорта нет SteamID цели — бан некуда отправить'); return; }
+    if(!confirm('Забанить '+(r.target||r.target_steamid)+' навсегда?')) return;
+    var ins=await supabase.from('punishments').insert({
+      steamid:r.target_steamid, nick:r.target||'', kind:'ban', minutes:0,
+      reason:'чит: '+(r.reason||'')
+    });
+    if(ins.error){ alert(ins.error.message); return; }
+    await supabase.from('reports').update({status:'closed'}).match({id:id});
+    showToast('Бан отправлен в игру');
+    loadPunishments(); loadReports();
+  };
+
+  // ============ Игрок чист ============
+  window.checkClean=async function(id){
+    if(!isOwner||!supabase) return;
+    var res=await supabase.from('checks').select('*').match({id:id}).single();
+    if(res.error){ alert(res.error.message); return; }
+    var c=res.data||{};
+    if(!confirm('Отметить '+(c.nick||c.steamid||'игрока')+' как чистого?')) return;
+    var upd=await supabase.from('checks').update({status:'closed'}).match({id:id});
+    if(upd.error){ alert(upd.error.message); return; }
+    if(c.steamid){
+      await supabase.from('reports').update({status:'closed'}).eq('target_steamid',c.steamid).neq('status','closed');
+    }
+    await supabase.from('broadcasts').insert({text:'Игрок '+(c.nick||c.steamid)+' чист — проверка пройдена.'});
+    showToast('Отмечено: игрок чист');
+    loadChecks(); loadReports();
+  };
+
+  // ============ Чат с игроком ============
+  var chatSteam='';
+
+  async function loadMessages(){
+    if(!isOwner||!supabase) return;
+    var log=document.getElementById('chatLog');
+    if(!log) return;
+    var sid=(document.getElementById('chatSteam').value||'').trim();
+    if(!/^\d{17}$/.test(sid)){ log.innerHTML='<p style="color:var(--muted)">Нужен SteamID из 17 цифр.</p>'; return; }
+    chatSteam=sid;
+    var {data,error}=await supabase.from('messages').select('*').eq('steamid',sid).order('id',{ascending:false}).limit(40);
+    if(error){ log.innerHTML='<p class="form-status err">Таблица messages не создана — выполни yxs-chat.sql</p>'; return; }
+    if(!data||!data.length){ log.innerHTML='<p style="color:var(--muted)">Сообщений нет.</p>'; return; }
+    log.innerHTML=data.slice().reverse().map(function(m){
+      var who=m.from_admin?'<b>АДМИН</b>':('<b>'+esc(m.nick||'игрок')+'</b>');
+      var st=m.from_admin?(m.delivered?' · доставлено':' · в очереди'):'';
+      return '<div class="av-row"><span>'+who+': '+esc(m.text)+'</span><span class="av-meta">'+avDate(m.created_at)+st+'</span></div>';
+    }).join('');
+  }
+
+  window.chatFor=function(steamid){
+    var f=document.getElementById('chatSteam');
+    if(f&&steamid){ f.value=steamid; loadMessages(); }
+    var block=document.getElementById('adminChat');
+    if(block&&block.scrollIntoView) block.scrollIntoView({behavior:'smooth',block:'center'});
+  };
+
+  async function sendChat(){
+    if(!isOwner||!supabase) return;
+    var st=document.getElementById('chatStatus');
+    var sid=(document.getElementById('chatSteam').value||'').trim();
+    var txt=(document.getElementById('chatText').value||'').trim();
+    if(!/^\d{17}$/.test(sid)){ st.className='form-status err'; st.textContent='Нужен SteamID игрока (17 цифр)'; return; }
+    if(!txt){ st.className='form-status err'; st.textContent='Пустое сообщение'; return; }
+    st.className='form-status'; st.textContent='Отправка...';
+    var {error}=await supabase.from('messages').insert({steamid:sid,nick:'',from_admin:true,text:txt});
+    if(error){ st.className='form-status err'; st.textContent=error.message; return; }
+    document.getElementById('chatText').value='';
+    st.className='form-status ok'; st.textContent='Отправлено — игрок увидит в течение 4 сек';
+    loadMessages();
+  }
+
+  var chatSendBtn=document.getElementById('chatSend');
+  if(chatSendBtn) chatSendBtn.addEventListener('click',sendChat);
+  var chatLoadBtn=document.getElementById('chatLoad');
+  if(chatLoadBtn) chatLoadBtn.addEventListener('click',loadMessages);
+  var chatTextField=document.getElementById('chatText');
+  if(chatTextField) chatTextField.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); sendChat(); } });
 
   window.punAdd=async function(){
     if(!isOwner||!supabase) return;
