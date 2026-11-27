@@ -396,6 +396,23 @@
   .pl-cell span{font-size:.62rem;color:#8a8a8a;text-transform:uppercase;letter-spacing:.1em}
   .pl-on{font-size:.62rem;color:#8ef07a;border:1px solid rgba(142,240,122,.45);padding:2px 8px;border-radius:20px;letter-spacing:.08em}
   @media(max-width:640px){.pl-cell{min-width:56px}.pl-name{max-width:130px}.pl-id{font-size:.62rem}}
+  /* reports panel */
+  .rp-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .rp-chip{background:#131314;border:1px solid rgba(255,255,255,.12);color:#cfcfcf;border-radius:20px;padding:7px 14px;font:inherit;font-size:.74rem;cursor:pointer;transition:border-color .2s,background .2s,color .2s}
+  .rp-chip:hover{border-color:rgba(255,255,255,.32)}
+  .rp-chip.active{background:#eaeaea;color:#0a0a0b;border-color:#eaeaea}
+  .rp-card{position:relative;display:flex;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:#131314;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+  .rp-card:hover{border-color:rgba(255,255,255,.2)}
+  .rp-bar{width:3px;flex:0 0 3px;background:#ff5a5a}
+  .rp-card.is-checking .rp-bar{background:#ffb84d}
+  .rp-card.is-closed .rp-bar{background:#5bd97a}
+  .rp-body{flex:1;padding:13px 16px}
+  .rp-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .rp-id{font-size:.7rem;color:#8a8a8a;letter-spacing:.08em}
+  .rp-target{font-weight:600;color:#fff;font-size:.96rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
+  .rp-top .c-status{margin-left:auto}
+  .rp-meta{font-size:.73rem;color:#8a8a8a;margin-bottom:9px}
+  .rp-reason{font-size:.88rem;color:#e8e8e8;background:#0f0f10;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:9px 12px;margin-bottom:10px}
   .views-wrap.admin .sw-btn.sb-admin,.views-wrap.server .sw-btn.sb-admin{background:#eaeaea;color:#000;border-color:#eaeaea}
   .views-wrap.admin .sw-btn.sb-clan,.views-wrap.admin .sw-btn.sb-server{background:transparent;color:#cfcfcf}
   /* server view is black&white */
@@ -1075,6 +1092,12 @@
 
     <div class="admin-complaints reveal" id="adminReports" style="margin-top:34px">
       <h3>Репорты игроков</h3>
+      <div class="rp-tools">
+        <button class="rp-chip active" data-rf="all" data-label="Все" id="rfAll">Все</button>
+        <button class="rp-chip" data-rf="new" data-label="Новые" id="rfNew">Новые</button>
+        <button class="rp-chip" data-rf="checking" data-label="На проверке" id="rfChecking">На проверке</button>
+        <button class="rp-chip" data-rf="closed" data-label="Закрыты" id="rfClosed">Закрыты</button>
+      </div>
       <div id="reportsList"><p style="color:var(--muted)">Репортов нет.</p></div>
     </div>
 
@@ -1119,7 +1142,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.3 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.4 · админ</span>
   </div>
 </footer>
 
@@ -3002,6 +3025,8 @@
   // ============ Админ: репорты ============
   var REPORT_STATUS={new:'Новый',checking:'На проверке',closed:'Закрыт'};
 
+  var rpFilter='all';
+
   async function loadReports(){
     if(!isOwner||!supabase) return;
     var panel=document.getElementById('adminReports');
@@ -3009,11 +3034,24 @@
     var list=document.getElementById('reportsList');
     if(!list) return;
     try{
-      var {data,error}=await supabase.from('reports').select('*').order('id',{ascending:false}).limit(50);
+      var {data,error}=await supabase.from('reports').select('*').order('id',{ascending:false}).limit(100);
       if(error) throw error;
-      if(!data||!data.length){ list.innerHTML='<p style="color:var(--muted)">Репортов нет.</p>'; return; }
-      list.innerHTML=data.map(function(r){
-        var cls=r.status==='closed'?'st-resolved':(r.status==='checking'?'st-progress':'st-open');
+      data=data||[];
+
+      var counts={all:data.length,new:0,checking:0,closed:0};
+      data.forEach(function(r){ if(counts[r.status]!==undefined) counts[r.status]++; });
+      ['all','new','checking','closed'].forEach(function(k){
+        var el=document.getElementById({all:'rfAll',new:'rfNew',checking:'rfChecking',closed:'rfClosed'}[k]);
+        if(el) el.textContent=(el.getAttribute('data-label')||'')+' · '+counts[k];
+      });
+
+      var rows=rpFilter==='all'?data:data.filter(function(r){ return r.status===rpFilter; });
+
+      if(!rows.length){ list.innerHTML='<p style="color:var(--muted)">В этой категории пусто.</p>'; return; }
+
+      list.innerHTML=rows.map(function(r){
+        var cls=r.status==='closed'?'is-closed':(r.status==='checking'?'is-checking':'is-new');
+        var pill=r.status==='closed'?'st-resolved':(r.status==='checking'?'st-progress':'st-open');
         var acts;
         if(r.status==='closed'){
           acts='<button class="shop-mini" onclick="reportAction('+r.id+',\'new\')">Открыть заново</button>';
@@ -3023,17 +3061,28 @@
                '<button class="shop-mini danger" onclick="reportBan('+r.id+')">Бан</button>'+
                '<button class="shop-mini danger" onclick="reportAction('+r.id+',\'closed\')">Закрыть</button>';
         }
-        return '<div class="c-item"><div class="c-head"><span class="c-who">#'+r.id+' · '+esc(r.target||'—')+'</span>'+
-          '<span class="c-status '+cls+'">'+(REPORT_STATUS[r.status]||r.status)+'</span></div>'+
-          '<div class="c-on">на кого: SteamID '+(r.target_steamid? '<b>'+esc(r.target_steamid)+'</b>' : '<span style="color:var(--muted)">неизвестен</span>')+'</div>'+
-          '<div class="c-on">от '+esc(r.nick||r.steamid||'?')+' · '+avDate(r.created_at)+'</div>'+
-          '<div class="c-text">'+esc(r.reason||'')+'</div>'+
-          '<div class="o-actions">'+acts+'</div></div>';
+        return '<div class="rp-card '+cls+'"><div class="rp-bar"></div><div class="rp-body">'+
+          '<div class="rp-top"><span class="rp-id">#'+r.id+'</span>'+
+          '<span class="rp-target">'+esc(r.target||'—')+'</span>'+
+          '<span class="c-status '+pill+'">'+(REPORT_STATUS[r.status]||r.status)+'</span></div>'+
+          '<div class="rp-meta">SteamID '+(r.target_steamid?esc(r.target_steamid):'неизвестен')+
+          ' · от '+esc(r.nick||r.steamid||'?')+' · '+avDate(r.created_at)+'</div>'+
+          '<div class="rp-reason">'+esc(r.reason||'—')+'</div>'+
+          '<div class="o-actions">'+acts+'</div></div></div>';
       }).join('');
     }catch(e){
       list.innerHTML='<p class="form-status err">Таблица репортов не создана — выполни yxs-reports.sql</p>';
     }
   }
+
+  document.querySelectorAll('.rp-chip').forEach(function(b){
+    b.addEventListener('click',function(){
+      rpFilter=b.getAttribute('data-rf');
+      document.querySelectorAll('.rp-chip').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      loadReports();
+    });
+  });
 
   window.reportAction=async function(id,status){
     if(!isOwner||!supabase) return;
