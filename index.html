@@ -395,6 +395,7 @@
   .pl-cell b{display:block;font-size:.95rem;color:#fff;white-space:nowrap}
   .pl-cell span{font-size:.62rem;color:#8a8a8a;text-transform:uppercase;letter-spacing:.1em}
   .pl-badge{font-size:.62rem;padding:2px 8px;border-radius:20px;letter-spacing:.08em;white-space:nowrap}
+  .pl-acts{flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.07)}
   .pl-on{color:#8ef07a;border:1px solid rgba(142,240,122,.45)}
   .pl-afk{color:#ffd166;border:1px solid rgba(255,209,102,.45)}
   .pl-off{color:#8a8a8a;border:1px solid rgba(255,255,255,.16)}
@@ -1207,7 +1208,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.7 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.8 · админ</span>
   </div>
 </footer>
 
@@ -1490,6 +1491,7 @@
     if(typeof loadReports==='function'){ loadReports(); }
     if(typeof loadChecks==='function'){ loadChecks(); }
     if(typeof loadPunishments==='function'){ loadPunishments(); }
+    if(typeof loadPlayers==='function'){ loadPlayers(); }
     if(typeof startRealtime==='function'){ startRealtime(); }
     if(swAdmin) swAdmin.style.display = isOwner ? 'inline-flex' : 'none';
     if(!isOwner && currentView==='admin') setView('clan');
@@ -3068,6 +3070,12 @@
         '<div class="pl-cell"><b>'+plHours(p.playtime)+'</b><span>в игре</span></div>'+
         '<div class="pl-cell"><b>'+kd.toFixed(2)+'</b><span>K/D</span></div>'+
         '<div class="pl-cell"><b>'+plAgo(p.last_seen)+'</b><span>последний вход</span></div>'+
+        (isOwner?'<div class="pl-acts">'+
+          '<button class="shop-mini" onclick="playerCall(\''+p.steamid+'\')">Вызвать</button>'+
+          '<button class="shop-mini" onclick="playerPunish(\''+p.steamid+'\',\'mute\')">Мут</button>'+
+          '<button class="shop-mini danger" onclick="playerPunish(\''+p.steamid+'\',\'ban\')">Бан</button>'+
+          '<button class="shop-mini" onclick="chatFor(\''+p.steamid+'\')">Чат</button>'+
+        '</div>':'')+
       '</div>';
     }).join('');
   }
@@ -3089,6 +3097,39 @@
   var plSearchEl=document.getElementById('plSearch');
   if(plSearchEl) plSearchEl.addEventListener('input',renderPlayers);
   setInterval(function(){ if(currentView==='players') loadPlayers(); },30000);
+
+  async function plNickOf(steamid){
+    try{
+      var r=await supabase.from('players').select('nick').eq('steamid',steamid).single();
+      if(r.data && r.data.nick) return r.data.nick;
+    }catch(e){}
+    return '';
+  }
+
+  window.playerCall=async function(steamid){
+    if(!isOwner||!supabase) return;
+    var nick=await plNickOf(steamid);
+    var ins=await supabase.from('checks').insert({steamid:steamid,nick:nick,reason:'с сайта'}).select('id').single();
+    if(ins.error){ alert(ins.error.message); return; }
+    await logCheck(ins.data?ins.data.id:null, steamid, nick, 'вызов создан', 'с сайта');
+    await supabase.from('broadcasts').insert({text:'Игрок '+(nick||'')+' вызван на проверку.'});
+    showToast('Вызов создан — экран появится в течение 5 сек');
+    loadChecks();
+  };
+
+  window.playerPunish=async function(steamid,kind){
+    if(!isOwner||!supabase) return;
+    var label=kind==='ban'?'Бан':'Мут';
+    var input=prompt(label+': на сколько минут? 0 = навсегда','60');
+    if(input===null) return;
+    var minutes=Number(input);
+    if(isNaN(minutes)||minutes<0) minutes=0;
+    var nick=await plNickOf(steamid);
+    var ins=await supabase.from('punishments').insert({steamid:steamid,nick:nick,kind:kind,minutes:minutes,reason:'с сайта'});
+    if(ins.error){ alert(ins.error.message); return; }
+    showToast(label+' отправлен в игру');
+    loadPunishments();
+  };
 
   // ============ Админ: репорты ============
   var REPORT_STATUS={new:'Новый',checking:'На проверке',closed:'Закрыт'};
@@ -3325,6 +3366,12 @@
           '<div class="rp-top"><span class="rp-target">'+esc(p.nick||'без ника')+'</span>'+
           (p.online ? (p.afk?'<span class="pl-badge pl-afk">ОТОШЁЛ</span>':'<span class="pl-badge pl-on">В СЕТИ</span>') : '<span class="pl-badge pl-off">НЕ В СЕТИ</span>')+'</div>'+
           '<div class="rp-meta">'+esc(p.steamid||'')+' · '+plHours(p.playtime)+' · K/D '+kd.toFixed(2)+' · '+plAgo(p.last_seen)+'</div>'+
+          '<div class="o-actions" style="margin-top:8px">'+
+            '<button class="shop-mini" onclick="playerCall(\''+p.steamid+'\')">Вызвать</button>'+
+            '<button class="shop-mini" onclick="playerPunish(\''+p.steamid+'\',\'mute\')">Мут</button>'+
+            '<button class="shop-mini danger" onclick="playerPunish(\''+p.steamid+'\',\'ban\')">Бан</button>'+
+            '<button class="shop-mini" onclick="chatFor(\''+p.steamid+'\')">Чат</button>'+
+          '</div>'+
         '</div></div>';
       }).join('');
     }catch(e){
@@ -3498,6 +3545,7 @@
   }
 
   window.chatFor=function(steamid){
+    if(isOwner && typeof setView==='function' && currentView!=='admin'){ setView('admin'); }
     var f=document.getElementById('chatSteam');
     if(f&&steamid){ f.value=steamid; loadMessages(); }
     if(typeof apShow==='function'){ apShow('chat'); }
