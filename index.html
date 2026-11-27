@@ -1204,7 +1204,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.5 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.6 · админ</span>
   </div>
 </footer>
 
@@ -3240,7 +3240,9 @@
 
         var acts='<button class="shop-mini" onclick="checkAction('+c.id+',\'active\')">Показать</button>';
         if(c.steamid){
-          acts+='<button class="shop-mini" onclick="chatFor(\''+esc(c.steamid)+'\')">Чат</button>';
+          acts+='<button class="shop-mini" onclick="chatFor(\''+esc(c.steamid)+'\')">Чат</button>'+
+                '<button class="shop-mini" onclick="checkPunish('+c.id+',\'mute\')">Мут</button>'+
+                '<button class="shop-mini danger" onclick="checkPunish('+c.id+',\'ban\')">Бан</button>';
         }
         if(c.status!=='closed'){
           acts+='<button class="shop-mini" onclick="checkAction('+c.id+',\'hidden\')">Убрать</button>'+
@@ -3441,8 +3443,36 @@
     loadChecks(); loadReports();
   };
 
-  // ============ Чат с игроком ============
-  var chatSteam='';
+  window.checkPunish=async function(id,kind){
+    if(!isOwner||!supabase) return;
+    var res=await supabase.from('checks').select('*').match({id:id}).single();
+    if(res.error){ alert(res.error.message); return; }
+    var c=res.data||{};
+    if(!c.steamid){ alert('У вызова нет SteamID'); return; }
+
+    var label=kind==='ban'?'Бан':'Мут';
+    var input=prompt(label+': на сколько минут? 0 = навсегда','60');
+    if(input===null) return;
+    var minutes=Number(input);
+    if(isNaN(minutes)||minutes<0) minutes=0;
+
+    var reason='проверка'+(c.reason?': '+c.reason:'');
+    var ins=await supabase.from('punishments').insert({steamid:c.steamid,nick:c.nick||'',kind:kind,minutes:minutes,reason:reason});
+    if(ins.error){ alert(ins.error.message); return; }
+
+    if(kind==='ban'){
+      await supabase.from('checks').update({status:'closed'}).match({id:id});
+      await supabase.from('reports').update({status:'closed'}).eq('target_steamid',c.steamid).neq('status','closed');
+      await logCheck(id,c.steamid,c.nick,'решение: бан',null);
+    }else{
+      await logCheck(id,c.steamid,c.nick,'решение: мут '+(minutes>0?minutes+' мин':'навсегда'),null);
+    }
+
+    showToast(label+' отправлен в игру');
+    loadChecks(); loadPunishments(); loadReports();
+  };
+
+  // ============ Чат с игроком ============  var chatSteam='';
 
   async function loadMessages(){
     if(!isOwner||!supabase) return;
