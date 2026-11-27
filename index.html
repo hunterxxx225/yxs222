@@ -413,6 +413,28 @@
   .rp-top .c-status{margin-left:auto}
   .rp-meta{font-size:.73rem;color:#8a8a8a;margin-bottom:9px}
   .rp-reason{font-size:.88rem;color:#e8e8e8;background:#0f0f10;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:9px 12px;margin-bottom:10px}
+  /* admin panel */
+  .ap-wrap{display:flex;background:#0f0f10;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;min-height:72vh}
+  .ap-side{width:232px;flex:0 0 232px;background:#121213;border-right:1px solid rgba(255,255,255,.07);padding:16px 12px 22px;display:flex;flex-direction:column;gap:2px}
+  .ap-brand{font-weight:800;letter-spacing:.16em;font-size:.8rem;color:#fff;padding:2px 8px 14px;text-transform:uppercase}
+  .ap-brand span{color:#8a8a8a;font-weight:500;letter-spacing:.06em}
+  .ap-search input{width:100%;background:#0c0c0d;border:1px solid rgba(255,255,255,.1);color:#eee;border-radius:8px;padding:8px 10px;font:inherit;font-size:.78rem;margin-bottom:6px}
+  .ap-search input:focus{outline:none;border-color:rgba(255,90,90,.5)}
+  .ap-group{font-size:.63rem;text-transform:uppercase;letter-spacing:.16em;color:#6a6a6a;padding:16px 8px 6px}
+  .ap-item{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:0;color:#cfcfcf;font:inherit;font-size:.84rem;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .15s,color .15s}
+  .ap-item:hover{background:#1a1a1b;color:#fff}
+  .ap-item.active{background:#1e1e20;color:#fff;box-shadow:inset 2px 0 0 #ff5a5a}
+  .ap-item b{margin-left:auto;font-size:.7rem;color:#8a8a8a;font-weight:600}
+  .ap-main{flex:1;min-width:0;padding:22px 24px}
+  .ap-page{display:none}
+  .ap-page.active{display:block}
+  .ap-title{margin:0 0 16px;font-size:1.05rem;color:#fff;font-weight:600}
+  .ap-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .ap-stat{background:#131314;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px}
+  .ap-stat b{display:block;font-size:1.6rem;color:#fff;line-height:1.1}
+  .ap-stat span{font-size:.68rem;color:#8a8a8a;text-transform:uppercase;letter-spacing:.1em}
+  .ap-stat em{display:block;font-style:normal;font-size:.72rem;color:#8a8a8a;margin-top:6px}
+  @media(max-width:860px){.ap-wrap{flex-direction:column}.ap-side{width:auto;flex:none;border-right:0;border-bottom:1px solid rgba(255,255,255,.07);flex-direction:row;flex-wrap:wrap}.ap-group,.ap-brand{display:none}.ap-search{width:100%}.ap-item{width:auto}.ap-main{padding:18px 14px}}
   .views-wrap.admin .sw-btn.sb-admin,.views-wrap.server .sw-btn.sb-admin{background:#eaeaea;color:#000;border-color:#eaeaea}
   .views-wrap.admin .sw-btn.sb-clan,.views-wrap.admin .sw-btn.sb-server{background:transparent;color:#cfcfcf}
   /* server view is black&white */
@@ -1076,61 +1098,101 @@
 <div class="view admin-view" id="adminView">
 <section class="server-sec">
   <div class="container">
-    <div class="sec-head reveal">
-      <div class="sec-kicker">Админ</div>
-      <h2>Репорты и проверки</h2>
-      <p>Жалобы игроков, вызовы на проверку и Discord-контакты. Вкладку видит только админ.</p>
-    </div>
+    <div class="ap-wrap reveal">
+      <aside class="ap-side">
+        <div class="ap-brand">YxS <span>panel</span></div>
+        <div class="ap-search"><input type="text" id="apSearch" placeholder="Поиск..." autocomplete="off"></div>
 
-    <div class="admin-complaints reveal" id="adminClear">
-      <h3>Очистка</h3>
-      <div class="admin-grid">
-        <button class="btn btn-solid" id="clearAll" style="padding:9px 14px;font-size:.76rem">Очистить все репорты и вызовы</button>
+        <div class="ap-group">Модерация</div>
+        <button class="ap-item active" data-ap="reports"><span>Репорты</span><b id="apCntReports">0</b></button>
+        <button class="ap-item" data-ap="checks"><span>Проверки</span><b id="apCntChecks">0</b></button>
+        <button class="ap-item" data-ap="chat"><span>Чат</span></button>
+        <button class="ap-item" data-ap="mutes"><span>Муты</span></button>
+        <button class="ap-item" data-ap="bans"><span>Блокировки</span></button>
+        <button class="ap-item" data-ap="players"><span>Игроки</span></button>
+
+        <div class="ap-group">Управление</div>
+        <button class="ap-item" data-ap="stats"><span>Статистика</span></button>
+        <button class="ap-item" data-ap="audit"><span>Журнал аудита</span></button>
+        <button class="ap-item" data-ap="tools"><span>Очистка</span></button>
+      </aside>
+
+      <div class="ap-main">
+        <div class="ap-page active" data-page="reports">
+          <h3 class="ap-title">Репорты игроков</h3>
+          <div class="rp-tools">
+            <button class="rp-chip active" data-rf="all" data-label="Все" id="rfAll">Все</button>
+            <button class="rp-chip" data-rf="new" data-label="Новые" id="rfNew">Новые</button>
+            <button class="rp-chip" data-rf="checking" data-label="На проверке" id="rfChecking">На проверке</button>
+            <button class="rp-chip" data-rf="closed" data-label="Закрыты" id="rfClosed">Закрыты</button>
+          </div>
+          <div id="reportsList"><p style="color:var(--muted)">Репортов нет.</p></div>
+        </div>
+
+        <div class="ap-page" data-page="checks">
+          <h3 class="ap-title">Проверки</h3>
+          <div id="checksHint" style="display:none;margin-bottom:12px"></div>
+          <div id="checksList"><p style="color:var(--muted)">Вызовов нет.</p></div>
+        </div>
+
+        <div class="ap-page" data-page="chat">
+          <h3 class="ap-title">Чат с игроком</h3>
+          <div class="admin-grid" style="margin-bottom:12px">
+            <input type="text" id="chatSteam" placeholder="SteamID игрока">
+            <input type="text" id="chatText" placeholder="Сообщение в чат раста">
+            <button class="btn btn-solid" id="chatSend" style="padding:9px 12px;font-size:.76rem">Отправить</button>
+            <button class="btn btn-ghost" id="chatLoad" style="padding:9px 12px;font-size:.76rem">Переписка</button>
+          </div>
+          <div class="form-status" id="chatStatus"></div>
+          <div class="c-on" style="margin-bottom:10px;color:var(--muted)">Отвечать можно и из Discord: бот перешлёт игроку, а его ответ появится здесь.</div>
+          <div id="chatLog"><p style="color:var(--muted)">Введи SteamID и нажми «Переписка».</p></div>
+        </div>
+
+        <div class="ap-page" data-page="mutes">
+          <h3 class="ap-title">Муты</h3>
+          <div class="admin-grid" style="margin-bottom:12px">
+            <input type="text" id="muteSteam" placeholder="SteamID или ник">
+            <input type="number" id="muteMinutes" placeholder="Минут (0 = навсегда)" min="0">
+            <input type="text" id="muteReason" placeholder="Причина">
+            <button class="btn btn-solid" id="muteAdd" style="padding:9px 12px;font-size:.76rem">Выдать мут</button>
+          </div>
+          <div class="form-status" id="punqStatus"></div>
+          <div id="mutesList"><p style="color:var(--muted)">Мутов нет.</p></div>
+        </div>
+
+        <div class="ap-page" data-page="bans">
+          <h3 class="ap-title">Блокировки</h3>
+          <div class="admin-grid" style="margin-bottom:12px">
+            <input type="text" id="banSteam" placeholder="SteamID или ник">
+            <input type="number" id="banMinutes" placeholder="Минут (0 = навсегда)" min="0">
+            <input type="text" id="banReason" placeholder="Причина">
+            <button class="btn btn-solid" id="banAdd" style="padding:9px 12px;font-size:.76rem">Забанить</button>
+          </div>
+          <div id="bansList"><p style="color:var(--muted)">Банов нет.</p></div>
+        </div>
+
+        <div class="ap-page" data-page="players">
+          <h3 class="ap-title">Игроки</h3>
+          <div id="apPlayersList"><p style="color:var(--muted)">Загрузка...</p></div>
+        </div>
+
+        <div class="ap-page" data-page="stats">
+          <h3 class="ap-title">Статистика</h3>
+          <div id="apStats" class="ap-stats"></div>
+        </div>
+
+        <div class="ap-page" data-page="audit">
+          <h3 class="ap-title">Журнал аудита</h3>
+          <div id="auditList"><p style="color:var(--muted)">Загрузка...</p></div>
+        </div>
+
+        <div class="ap-page" data-page="tools">
+          <h3 class="ap-title">Очистка</h3>
+          <p style="color:var(--muted);font-size:.85rem;margin:0 0 14px">Удаляет все репорты и вызовы. Журнал и история в Discord остаются.</p>
+          <button class="btn btn-solid" id="clearAll" style="padding:11px 18px;font-size:.8rem">Очистить все репорты и вызовы</button>
+          <div class="form-status" id="clearStatus"></div>
+        </div>
       </div>
-      <div class="form-status" id="clearStatus"></div>
-    </div>
-
-    <div class="admin-complaints reveal" id="adminReports" style="margin-top:34px">
-      <h3>Репорты игроков</h3>
-      <div class="rp-tools">
-        <button class="rp-chip active" data-rf="all" data-label="Все" id="rfAll">Все</button>
-        <button class="rp-chip" data-rf="new" data-label="Новые" id="rfNew">Новые</button>
-        <button class="rp-chip" data-rf="checking" data-label="На проверке" id="rfChecking">На проверке</button>
-        <button class="rp-chip" data-rf="closed" data-label="Закрыты" id="rfClosed">Закрыты</button>
-      </div>
-      <div id="reportsList"><p style="color:var(--muted)">Репортов нет.</p></div>
-    </div>
-
-    <div class="admin-complaints reveal" id="adminChecks" style="margin-top:34px">
-      <h3>Вызовы и Discord</h3>
-      <div id="checksHint" style="display:none;margin-bottom:12px"></div>
-      <div id="checksList"><p style="color:var(--muted)">Вызовов нет.</p></div>
-    </div>
-
-    <div class="admin-complaints reveal" id="adminChat" style="margin-top:34px">
-      <h3>Чат с игроком</h3>
-      <div class="admin-grid" style="margin-bottom:12px">
-        <input type="text" id="chatSteam" placeholder="SteamID игрока">
-        <input type="text" id="chatText" placeholder="Сообщение в чат раста">
-        <button class="btn btn-solid" id="chatSend" style="padding:9px 12px;font-size:.76rem">Отправить</button>
-        <button class="btn btn-ghost" id="chatLoad" style="padding:9px 12px;font-size:.76rem">Переписка</button>
-      </div>
-      <div class="form-status" id="chatStatus"></div>
-      <div class="c-on" style="margin-bottom:10px;color:var(--muted)">Отвечать можно и из Discord: бот перешлёт игроку, а его ответ появится здесь.</div>
-      <div id="chatLog"><p style="color:var(--muted)">Введи SteamID и нажми «Переписка».</p></div>
-    </div>
-
-    <div class="admin-complaints reveal" id="adminPunish" style="margin-top:34px">
-      <h3>Наказания</h3>
-      <div class="admin-grid" style="margin-bottom:12px">
-        <input type="text" id="punSteam" placeholder="SteamID или ник">
-        <select id="punKind"><option value="ban">Бан</option><option value="mute">Мут</option></select>
-        <input type="number" id="punMinutes" placeholder="Минут (0 = навсегда)" min="0">
-        <input type="text" id="punReason" placeholder="Причина">
-        <button class="btn btn-solid" id="punAdd" style="padding:9px 12px;font-size:.76rem">Выдать</button>
-      </div>
-      <div class="form-status" id="punStatus"></div>
-      <div id="punishList"><p style="color:var(--muted)">Наказаний нет.</p></div>
     </div>
   </div>
 </section>
@@ -1142,7 +1204,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.4 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.5 · админ</span>
   </div>
 </footer>
 
@@ -3040,6 +3102,9 @@
 
       var counts={all:data.length,new:0,checking:0,closed:0};
       data.forEach(function(r){ if(counts[r.status]!==undefined) counts[r.status]++; });
+
+      var cntR=document.getElementById('apCntReports');
+      if(cntR) cntR.textContent=counts.new;
       ['all','new','checking','closed'].forEach(function(k){
         var el=document.getElementById({all:'rfAll',new:'rfNew',checking:'rfChecking',closed:'rfClosed'}[k]);
         if(el) el.textContent=(el.getAttribute('data-label')||'')+' · '+counts[k];
@@ -3146,6 +3211,9 @@
       if(chk.error) throw chk.error;
       var data=chk.data||[];
 
+      var cntC=document.getElementById('apCntChecks');
+      if(cntC) cntC.textContent=data.filter(function(x){ return x.status!=='closed'; }).length;
+
       var con=await supabase.from('contacts').select('steamid,discord,created_at')
         .order('id',{ascending:false}).limit(200);
       var bySteam={};
@@ -3201,28 +3269,126 @@
     }
   }
 
+  function punRows(list, empty){
+    if(!list.length) return '<p style="color:var(--muted)">'+empty+'</p>';
+    return list.map(function(p){
+      var cls=p.status==='done'?'st-resolved':(p.status==='failed'?'st-open':'st-progress');
+      var label=p.status==='done'?'Выдано':(p.status==='failed'?'Ошибка':'В очереди');
+      var dur=p.minutes>0?p.minutes+' мин':'навсегда';
+      return '<div class="rp-card"><div class="rp-bar"></div><div class="rp-body">'+
+        '<div class="rp-top"><span class="rp-id">#'+p.id+'</span>'+
+        '<span class="rp-target">'+esc(p.nick||p.steamid)+'</span>'+
+        '<span class="c-status '+cls+'">'+label+'</span></div>'+
+        '<div class="rp-meta">'+esc(p.steamid||'')+' · '+dur+' · '+avDate(p.created_at)+'</div>'+
+        '<div class="rp-reason">'+esc(p.reason||'без причины')+(p.note?' · '+esc(p.note):'')+'</div>'+
+      '</div></div>';
+    }).join('');
+  }
+
   async function loadPunishments(){
     if(!isOwner||!supabase) return;
-    var box=document.getElementById('punishList');
-    if(!box) return;
+    var mutesBox=document.getElementById('mutesList');
+    var bansBox=document.getElementById('bansList');
+    if(!mutesBox && !bansBox) return;
     try{
-      var {data,error}=await supabase.from('punishments').select('*').order('id',{ascending:false}).limit(30);
+      var {data,error}=await supabase.from('punishments').select('*').order('id',{ascending:false}).limit(100);
       if(error) throw error;
-      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Наказаний нет.</p>'; return; }
-      box.innerHTML=data.map(function(p){
-        var cls=p.status==='done'?'st-resolved':(p.status==='failed'?'st-open':'st-progress');
-        var label=p.status==='done'?'Выдано':(p.status==='failed'?'Ошибка':'В очереди');
-        var kind=p.kind==='ban'?'Бан':'Мут';
-        var dur=p.minutes>0?p.minutes+' мин':'навсегда';
-        return '<div class="c-item"><div class="c-head"><span class="c-who">#'+p.id+' · '+esc(p.nick||p.steamid)+'</span>'+
-          '<span class="c-status '+cls+'">'+label+'</span></div>'+
-          '<div class="c-on">'+kind+' · '+dur+' · '+avDate(p.created_at)+'</div>'+
-          '<div class="c-text">'+esc(p.reason||'без причины')+(p.note?' · '+esc(p.note):'')+'</div></div>';
-      }).join('');
+      data=data||[];
+      if(mutesBox) mutesBox.innerHTML=punRows(data.filter(function(p){return p.kind==='mute';}),'Мутов нет.');
+      if(bansBox) bansBox.innerHTML=punRows(data.filter(function(p){return p.kind==='ban';}),'Банов нет.');
     }catch(e){
-      box.innerHTML='<p class="form-status err">Таблица punishments не создана — выполни yxs-punish.sql</p>';
+      var msg='<p class="form-status err">Таблица punishments не создана — выполни yxs-punish.sql</p>';
+      if(mutesBox) mutesBox.innerHTML=msg;
+      if(bansBox) bansBox.innerHTML=msg;
     }
   }
+
+  async function loadAdminPlayers(){
+    if(!isOwner||!supabase) return;
+    var box=document.getElementById('apPlayersList');
+    if(!box) return;
+    try{
+      var {data,error}=await supabase.from('players').select('*').order('playtime',{ascending:false}).limit(200);
+      if(error) throw error;
+      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Пока пусто — плагин ещё не присылал статистику.</p>'; return; }
+      box.innerHTML=data.map(function(p){
+        var kd=(p.kills||0)/Math.max(1,(p.deaths||0));
+        return '<div class="rp-card"><div class="rp-bar"></div><div class="rp-body">'+
+          '<div class="rp-top"><span class="rp-target">'+esc(p.nick||'без ника')+'</span>'+
+          (p.online?'<span class="pl-on">В ИГРЕ</span>':'')+'</div>'+
+          '<div class="rp-meta">'+esc(p.steamid||'')+' · '+plHours(p.playtime)+' · K/D '+kd.toFixed(2)+' · '+plAgo(p.last_seen)+'</div>'+
+        '</div></div>';
+      }).join('');
+    }catch(e){
+      box.innerHTML='<p class="form-status err">Таблица players не создана — выполни yxs-players.sql</p>';
+    }
+  }
+
+  async function loadStats(){
+    if(!isOwner||!supabase) return;
+    var box=document.getElementById('apStats');
+    if(!box) return;
+    try{
+      var rep=await supabase.from('reports').select('status');
+      var chk=await supabase.from('checks').select('status');
+      var pun=await supabase.from('punishments').select('kind');
+      var plr=await supabase.from('players').select('steamid');
+
+      var reports=rep.data||[], checks=chk.data||[], puns=pun.data||[], players=plr.data||[];
+      var openRep=reports.filter(function(x){return x.status!=='closed';}).length;
+      var activeChecks=checks.filter(function(x){return x.status!=='closed';}).length;
+      var bans=puns.filter(function(x){return x.kind==='ban';}).length;
+      var mutes=puns.filter(function(x){return x.kind==='mute';}).length;
+
+      function card(label,value,note){
+        return '<div class="ap-stat"><b>'+value+'</b><span>'+label+'</span><em>'+note+'</em></div>';
+      }
+
+      box.innerHTML=
+        card('Репорты', reports.length, openRep+' открытых')+
+        card('Проверки', checks.length, activeChecks+' активных')+
+        card('Баны', bans, 'за всё время')+
+        card('Муты', mutes, 'за всё время')+
+        card('Игроки', players.length, 'в статистике');
+    }catch(e){
+      box.innerHTML='<p class="form-status err">Не хватает таблиц — проверь, что выполнены все SQL-файлы</p>';
+    }
+  }
+
+  async function loadAudit(){
+    if(!isOwner||!supabase) return;
+    var box=document.getElementById('auditList');
+    if(!box) return;
+    try{
+      var {data,error}=await supabase.from('check_log').select('*').order('id',{ascending:false}).limit(100);
+      if(error) throw error;
+      if(!data||!data.length){ box.innerHTML='<p style="color:var(--muted)">Записей нет.</p>'; return; }
+      box.innerHTML=data.map(function(x){
+        return '<div class="rp-card"><div class="rp-bar"></div><div class="rp-body">'+
+          '<div class="rp-top"><span class="rp-id">#'+(x.check_id||'—')+'</span>'+
+          '<span class="rp-target">'+esc(x.action||'')+'</span></div>'+
+          '<div class="rp-meta">'+esc(x.nick||'')+(x.steamid?' · '+esc(x.steamid):'')+' · '+avDate(x.created_at)+'</div>'+
+          (x.note?'<div class="rp-reason">'+esc(x.note)+'</div>':'')+
+        '</div></div>';
+      }).join('');
+    }catch(e){
+      box.innerHTML='<p class="form-status err">Таблица check_log не создана — выполни yxs-checklog.sql</p>';
+    }
+  }
+
+  function apShow(name){
+    document.querySelectorAll('.ap-item').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-ap')===name); });
+    document.querySelectorAll('.ap-page').forEach(function(p){ p.classList.toggle('active', p.getAttribute('data-page')===name); });
+    if(name==='reports') loadReports();
+    else if(name==='checks') loadChecks();
+    else if(name==='mutes'||name==='bans') loadPunishments();
+    else if(name==='players') loadAdminPlayers();
+    else if(name==='stats') loadStats();
+    else if(name==='audit') loadAudit();
+  }
+  document.querySelectorAll('.ap-item').forEach(function(b){
+    b.addEventListener('click',function(){ apShow(b.getAttribute('data-ap')); });
+  });
 
   // ============ Realtime ============
   var rtChannel=null;
@@ -3298,8 +3464,7 @@
   window.chatFor=function(steamid){
     var f=document.getElementById('chatSteam');
     if(f&&steamid){ f.value=steamid; loadMessages(); }
-    var block=document.getElementById('adminChat');
-    if(block&&block.scrollIntoView) block.scrollIntoView({behavior:'smooth',block:'center'});
+    if(typeof apShow==='function'){ apShow('chat'); }
   };
 
   async function sendChat(){
@@ -3354,13 +3519,13 @@
   var clearAllBtn=document.getElementById('clearAll');
   if(clearAllBtn) clearAllBtn.addEventListener('click',clearAll);
 
-  window.punAdd=async function(){
+  async function punQuick(kind){
     if(!isOwner||!supabase) return;
-    var st=document.getElementById('punStatus');
-    var raw=(document.getElementById('punSteam').value||'').trim();
-    var kind=document.getElementById('punKind').value;
-    var minutes=Number(document.getElementById('punMinutes').value||0);
-    var reason=(document.getElementById('punReason').value||'').trim();
+    var st=document.getElementById('punqStatus');
+    var prefix=kind==='ban'?'ban':'mute';
+    var raw=(document.getElementById(prefix+'Steam').value||'').trim();
+    var minutes=Number(document.getElementById(prefix+'Minutes').value||0);
+    var reason=(document.getElementById(prefix+'Reason').value||'').trim();
 
     if(!raw){ st.className='form-status err'; st.textContent='Введи SteamID или ник'; return; }
 
@@ -3368,8 +3533,12 @@
     var nick='';
     if(/^\d{17}$/.test(raw)){ steamid=raw; }
     else{
-      var q=await supabase.from('shop_users').select('steamid,nick').ilike('nick','%'+raw+'%').limit(1);
+      var q=await supabase.from('players').select('steamid,nick').ilike('nick','%'+raw+'%').limit(1);
       if(q.data && q.data[0]){ steamid=q.data[0].steamid; nick=q.data[0].nick; }
+      if(!steamid){
+        var q2=await supabase.from('shop_users').select('steamid,nick').ilike('nick','%'+raw+'%').limit(1);
+        if(q2.data && q2.data[0]){ steamid=q2.data[0].steamid; nick=q2.data[0].nick; }
+      }
     }
 
     if(!steamid){ st.className='form-status err'; st.textContent='SteamID не найден — впиши 17 цифр'; return; }
@@ -3378,14 +3547,16 @@
     if(ins.error){ st.className='form-status err'; st.textContent='Ошибка: '+ins.error.message; return; }
 
     st.className='form-status ok';
-    st.textContent='Задание создано — плагин выполнит в течение 5 сек';
-    document.getElementById('punReason').value='';
-    document.getElementById('punMinutes').value='';
+    st.textContent=(kind==='ban'?'Бан':'Мут')+' в очереди — плагин выполнит в течение 5 сек';
+    document.getElementById(prefix+'Reason').value='';
+    document.getElementById(prefix+'Minutes').value='';
     loadPunishments();
-  };
+  }
 
-  var punBtn=document.getElementById('punAdd');
-  if(punBtn) punBtn.addEventListener('click',window.punAdd);
+  var banAddBtn=document.getElementById('banAdd');
+  if(banAddBtn) banAddBtn.addEventListener('click',function(){ punQuick('ban'); });
+  var muteAddBtn=document.getElementById('muteAdd');
+  if(muteAddBtn) muteAddBtn.addEventListener('click',function(){ punQuick('mute'); });
 
   // ============ Init ============
   updateMemberButtons();
