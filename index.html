@@ -1119,7 +1119,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.2 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.3 · админ</span>
   </div>
 </footer>
 
@@ -3039,6 +3039,12 @@
     if(!isOwner||!supabase) return;
     var {error}=await supabase.from('reports').update({status:status}).match({id:id});
     if(error){ alert(error.message); return; }
+    if(status==='closed'){
+      var r=await supabase.from('reports').select('steamid').match({id:id}).single();
+      if(r.data && r.data.steamid){
+        await supabase.from('messages').insert({steamid:r.data.steamid,nick:'',from_admin:true,text:'Твой репорт #'+id+' рассмотрен. Спасибо!'});
+      }
+    }
     showToast('Репорт #'+id+' → '+(REPORT_STATUS[status]||status));
     loadReports();
   };
