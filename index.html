@@ -1208,7 +1208,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.8 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.9 · админ</span>
   </div>
 </footer>
 
@@ -3067,7 +3067,7 @@
         '<div class="pl-id">'+esc(p.steamid||'')+'</div></div>'+
         '<div class="pl-sp"></div>'+
         (p.online ? (p.afk?'<span class="pl-badge pl-afk">ОТОШЁЛ</span>':'<span class="pl-badge pl-on">В СЕТИ</span>') : '<span class="pl-badge pl-off">НЕ В СЕТИ</span>')+
-        '<div class="pl-cell"><b>'+plHours(p.playtime)+'</b><span>в игре</span></div>'+
+        '<div class="pl-cell"><b>'+plHours(p.playtime)+'</b><span>наиграно</span></div>'+
         '<div class="pl-cell"><b>'+kd.toFixed(2)+'</b><span>K/D</span></div>'+
         '<div class="pl-cell"><b>'+plAgo(p.last_seen)+'</b><span>последний вход</span></div>'+
         (isOwner?'<div class="pl-acts">'+
