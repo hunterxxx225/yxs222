@@ -394,7 +394,10 @@
   .pl-cell{min-width:72px;text-align:right}
   .pl-cell b{display:block;font-size:.95rem;color:#fff;white-space:nowrap}
   .pl-cell span{font-size:.62rem;color:#8a8a8a;text-transform:uppercase;letter-spacing:.1em}
-  .pl-on{font-size:.62rem;color:#8ef07a;border:1px solid rgba(142,240,122,.45);padding:2px 8px;border-radius:20px;letter-spacing:.08em}
+  .pl-badge{font-size:.62rem;padding:2px 8px;border-radius:20px;letter-spacing:.08em;white-space:nowrap}
+  .pl-on{color:#8ef07a;border:1px solid rgba(142,240,122,.45)}
+  .pl-afk{color:#ffd166;border:1px solid rgba(255,209,102,.45)}
+  .pl-off{color:#8a8a8a;border:1px solid rgba(255,255,255,.16)}
   @media(max-width:640px){.pl-cell{min-width:56px}.pl-name{max-width:130px}.pl-id{font-size:.62rem}}
   /* reports panel */
   .rp-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
@@ -1204,7 +1207,7 @@
   <div class="container foot">
     <div class="logo"><img src="logo.png" alt="" class="logo-img" style="width:30px;height:30px"><span style="color:var(--text)">YxS CLAN · Rust</span></div>
     <div>Войди. Добей. Забери.</div>
-    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.6 · админ</span>
+    <span id="adminTrigger" title="" style="opacity:.25;cursor:pointer;font-size:.72rem;letter-spacing:.1em;user-select:none">v4.7 · админ</span>
   </div>
 </footer>
 
@@ -3042,7 +3045,9 @@
     });
 
     list.sort(function(a,b){
-      if(!!b.online!==!!a.online) return b.online?1:-1;
+      function rank(p){ return p.online ? (p.afk?1:0) : 2; }
+      var d=rank(a)-rank(b);
+      if(d) return d;
       return (b.playtime||0)-(a.playtime||0);
     });
 
@@ -3059,7 +3064,7 @@
         '<div class="pl-main"><div class="pl-name">'+esc(p.nick||'без ника')+'</div>'+
         '<div class="pl-id">'+esc(p.steamid||'')+'</div></div>'+
         '<div class="pl-sp"></div>'+
-        (p.online?'<span class="pl-on">В ИГРЕ</span>':'')+
+        (p.online ? (p.afk?'<span class="pl-badge pl-afk">ОТОШЁЛ</span>':'<span class="pl-badge pl-on">В СЕТИ</span>') : '<span class="pl-badge pl-off">НЕ В СЕТИ</span>')+
         '<div class="pl-cell"><b>'+plHours(p.playtime)+'</b><span>в игре</span></div>'+
         '<div class="pl-cell"><b>'+kd.toFixed(2)+'</b><span>K/D</span></div>'+
         '<div class="pl-cell"><b>'+plAgo(p.last_seen)+'</b><span>последний вход</span></div>'+
@@ -3083,6 +3088,7 @@
 
   var plSearchEl=document.getElementById('plSearch');
   if(plSearchEl) plSearchEl.addEventListener('input',renderPlayers);
+  setInterval(function(){ if(currentView==='players') loadPlayers(); },30000);
 
   // ============ Админ: репорты ============
   var REPORT_STATUS={new:'Новый',checking:'На проверке',closed:'Закрыт'};
@@ -3317,7 +3323,7 @@
         var kd=(p.kills||0)/Math.max(1,(p.deaths||0));
         return '<div class="rp-card"><div class="rp-bar"></div><div class="rp-body">'+
           '<div class="rp-top"><span class="rp-target">'+esc(p.nick||'без ника')+'</span>'+
-          (p.online?'<span class="pl-on">В ИГРЕ</span>':'')+'</div>'+
+          (p.online ? (p.afk?'<span class="pl-badge pl-afk">ОТОШЁЛ</span>':'<span class="pl-badge pl-on">В СЕТИ</span>') : '<span class="pl-badge pl-off">НЕ В СЕТИ</span>')+'</div>'+
           '<div class="rp-meta">'+esc(p.steamid||'')+' · '+plHours(p.playtime)+' · K/D '+kd.toFixed(2)+' · '+plAgo(p.last_seen)+'</div>'+
         '</div></div>';
       }).join('');
